@@ -1,0 +1,5 @@
+pip install these:
+PIL
+openCV
+images2gif
+pymongo

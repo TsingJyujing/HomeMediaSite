@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Iterator</title>
+</head>
+<body>
+{% for dictItem in testList %}
+    <br>
+
+    dict_A-->{{ dictItem.a }}<br>
+
+    {% for ite in dictItem.a %}
+        subItem:{{ite}}<br>
+    {% endfor %}
+
+    {% for key, value in dictItem.items %}
+        {{ key }}: {{ value }}<br>
+    {% endfor %}
+{% endfor %}
+</body>
+</html>
