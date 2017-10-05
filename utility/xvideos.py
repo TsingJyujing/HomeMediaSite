@@ -46,7 +46,7 @@ class XVideoDownloadTask(BackgroundTask):
 
         # Common operations
         self.progress = 15
-        self.progress_info = "Downloading video ..."
+        self.progress_info = "Downloading video ..." + title
         task = DownloadTask(mp4url, save_filename, lambda value: self.set_progress(value * 0.65 + 15))
         task.start()
         task.join(timeout=3600 * 24)

@@ -30,7 +30,7 @@ def migrate_videos_to_remote():
 def remove_remote_DAGUERRE():
     assert input("Delete all DAGUERRE?(True/False)"), "Paused"
     with MongoDBCollection("website_pron", "images_info", host="192.168.1.103") as remote_coll:
-        with ExtSSHConnection("192.168.1.103", "root", "979323846") as ext_ssh:
+        with ExtSSHConnection("192.168.1.103", "yuanyifan", "979323") as ext_ssh:
             daguerre_ids = [int(doc["_id"]) for doc in remote_coll.find({"block": "DAGUERRE"})]
             for daguerre_id in daguerre_ids:  # 找到所有的达盖尔的旗帜
                 print("Removing...%08d" % daguerre_id)

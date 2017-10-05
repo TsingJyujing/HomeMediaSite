@@ -37,7 +37,7 @@ video_temp = "buffer/video_temp_%X.mp4"
 shortcuts_temp = "buffer/shortcuts_temp_%X.gif"
 
 # Web主文件夹
-media_file_dir = auto_fix_path("/media/yuanyifan/ext_data/webserver/")
+media_file_dir = auto_fix_path("/mnt/d/Data/WebServer/")
 
 video_saving_path = media_file_dir + "video/file/porv_%d.mp4"
 shortcuts_saving_path = media_file_dir + "video/preview/prev_%d.gif"
@@ -55,8 +55,8 @@ Should inited by dict, for example:
 """
 image_url_template = "/file/images/%(page_index)08d/%(image_filename)s"
 
-local_images_path = auto_fix_path("/media/yuanyifan/ext_data/webserver/images/")
-local_image_list_path = auto_fix_path("/media/yuanyifan/ext_data/webserver/images/%(page_index)08d/")
-local_novel_path_gen = auto_fix_path("/media/yuanyifan/ext_data/webserver/novel/%d.txt")
-trash_novel_path_gen = auto_fix_path("/media/yuanyifan/ext_data/webserver/trash/novel/%s.txt")
-trash_image_path_gen = auto_fix_path("/media/yuanyifan/ext_data/webserver/trash/images/%(page_index)08d/")
+local_images_path = auto_fix_path("/mnt/d/Data/WebServer/images/")
+local_image_list_path = auto_fix_path("/mnt/d/Data/WebServer/images/%(page_index)08d/")
+local_novel_path_gen = auto_fix_path("/mnt/d/Data/WebServer/novel/%d.txt")
+trash_novel_path_gen = auto_fix_path("/mnt/d/Data/WebServer/trash/novel/%s.txt")
+trash_image_path_gen = auto_fix_path("/mnt/d/Data/WebServer/trash/images/%(page_index)08d/")

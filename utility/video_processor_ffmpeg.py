@@ -1,8 +1,5 @@
 from moviepy.editor import VideoFileClip,VideoClip
-
-import images2gif
 import math
-from PIL import Image
 
 
 def get_video_cap(video_file_name):

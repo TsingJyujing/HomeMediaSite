@@ -2,7 +2,6 @@
 from __future__ import unicode_literals
 
 import json
-import os
 import shutil
 
 from django.views.decorators.csrf import csrf_exempt
@@ -24,7 +23,6 @@ def get_images_info(request):
     :return: images' urls by given index
     """
     image_page_index = int(request.GET["id"])
-    host = get_host(request)
     file_list = filter(filter_images, os.listdir(local_image_list_path % {
         "page_index": image_page_index
     }))
