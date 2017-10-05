@@ -103,7 +103,7 @@
             return "glyphicon glyphicon-thumbs-" + (is_like ? "up" : "down");
         }
 
-        const column_division = 3;
+        const column_division = 4;
 
         function refresh_video_list() {
             const keyword = $("#query_keyword").val();
@@ -129,7 +129,7 @@
 
                         const vid = video_info._id;
                         const video_url = "/file/video/file/porv_" + vid + ".mp4";
-                        const preview_url = "/file/video/preview/porv_" + vid + ".gif";
+                        const preview_url = "/file/video/preview/prev_" + vid + ".gif";
                         let label_block = $("<p></p>");
                         video_info.tags.forEach(
                             (tag_text) => {
@@ -184,7 +184,7 @@
                                             "视频时间：" + fotmat_video_time(video_info.time) + "<br>"
                                             + "尺寸:" + sprintf("%dx%d", video_info.size.width, video_info.size.height)
                                         )
-                                    ).append(
+                                    ).append("&nbsp;").append(
                                         $("<p></p>").append(
                                             $("<button></button>").attr({
                                                 "type": "button",
@@ -204,7 +204,7 @@
                                                     "播放"
                                                 )
                                             )
-                                        ).append(
+                                        ).append("&nbsp;").append(
                                             $("<button></button>").attr({
                                                 "type": "button",
                                                 "class": "btn btn-default",
@@ -216,9 +216,7 @@
                                                     "aria-hidden": "true"
                                                 })
                                             )
-                                        )
-
-                                            .append(
+                                        ).append("&nbsp;").append(
                                                 $("<button></button>").attr({
                                                     "type": "button",
                                                     "class": "btn btn-default",

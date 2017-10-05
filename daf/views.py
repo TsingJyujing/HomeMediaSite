@@ -2,8 +2,8 @@
 from __future__ import unicode_literals
 
 import json
+import os
 import shutil
-import logging
 
 from django.views.decorators.csrf import csrf_exempt
 
@@ -12,8 +12,6 @@ from utility.connections import MongoDBDatabase
 from utility.files import filter_images
 from utility.http import response_json, get_host, get_request_with_default
 from utility.list_file_io import read_raw
-
-logger = logging.getLogger("Data access application")
 
 
 # Region: get information from database/filesystem for frontend daf
@@ -34,7 +32,6 @@ def get_images_info(request):
         "page_index": image_page_index,
         "image_filename": filename
     } for filename in file_list]
-    logger.debug("Request images info from %s where _id is %d" % (host, image_page_index))
     with MongoDBDatabase("website_pron") as mgdb:
         doc = mgdb.get_collection("images_info").find_one({"_id": image_page_index})
         doc["images"] = image_list
@@ -212,7 +209,6 @@ def remove_video(request):
     :param request:
     :return:
     """
-
     remove_id = int(request.POST['id'])
     with MongoDBDatabase("website_pron") as mongo_conn:
         collection = mongo_conn.get_collection("video_info")

@@ -12,9 +12,9 @@ from utility.connections import MongoDBDatabase, MongoDBCollection
 from utility.debug_tool import LastOpMonitor
 from utility.pyurllib import urlread2, URLReadThread
 
-concurrency_num = 40
+concurrency_num = 32
 failed_time_limit = 10
-agency_address = "http://47.90.245.126/"
+agency_address = "http://47.90.245.126:8087"
 
 
 def url_read_json(url):
@@ -55,50 +55,59 @@ class SpiderThread(threading.Thread):
         self._last_op = value + "%f" % time.time()
 
     def run(self):
-        # print("Process started: " + self.name)
-        self.last_op = "Inited."
-        with MongoDBDatabase(self.db_name) as mongoDB:
-            failed_times = 0
-            waitingColl = mongoDB.get_collection(self.coll_prefix + "_queue")
-            runningColl = mongoDB.get_collection(self.coll_prefix + "_running")
-            storageColl = mongoDB.get_collection(self.coll_prefix + "_storage")
-            coll_list = (waitingColl, runningColl, storageColl)
-            while True:
-                if failed_times >= failed_time_limit:
-                    print("Failed too much, ended: " + self.name)
-                    break
-                task = waitingColl.find_one_and_delete({})
-                self.last_op = "Got a task."
-                if task is None:
-                    failed_times += 1
-                    print("Failed: " + self.name)
-                    self.last_op = "Fail sleeping."
-                    time.sleep(2)
-                else:
-                    url = task["_id"]
-                    try:
-                        runningColl.insert_one({"_id": url})
-                        if storageColl.find_one({"_id": url}, {"_id": 1}) is None:
-                            self.last_op = "Querying."
-                            doc_storage = query_url(url)
-                            self.last_op = "Queried."
-                            relatedURLs = doc_storage.pop("related")
-                            runningColl.delete_one({"_id": url})
-                            storageColl.insert_one(doc_storage)
-                            self.last_op = "Inserted, appending."
-                            for task in relatedURLs:
-                                condition_doc = {"_id": task.split("?")[0]}
-                                if all((coll.find_one(condition_doc, {"_id": 1}) is None for coll in coll_list)):
-                                    waitingColl.insert_one(condition_doc)
-                        else:
-                            print("DUMP  : %s" % url)
-                        failed_times = 0
-                    except:
-                        print("ERROR :%s" % url)
-                        waitingColl.insert_one({"_id": url})
-                        runningColl.delete_one({"_id": url})
+        try:
+            # print("Process started: " + self.name)
+            self.last_op = "Inited."
+            with MongoDBDatabase(self.db_name) as mongoDB:
+                failed_times = 0
+                waitingColl = mongoDB.get_collection(self.coll_prefix + "_queue")
+                runningColl = mongoDB.get_collection(self.coll_prefix + "_running")
+                storageColl = mongoDB.get_collection(self.coll_prefix + "_storage")
+                coll_list = (waitingColl, runningColl, storageColl)
+                while True:
+                    if failed_times >= failed_time_limit:
+                        print("Failed too much, ended: " + self.name)
+                        break
+                    task = waitingColl.find_one_and_delete({})
+                    self.last_op = "Got a task."
+                    if task is None:
                         failed_times += 1
-                        print("Errored: " + self.name)
+                        print("Failed: " + self.name)
+                        self.last_op = "Fail sleeping."
+                        time.sleep(2)
+                    else:
+                        url = task["_id"]
+                        try:
+                            runningColl.insert_one({"_id": url})
+                            if storageColl.find_one({"_id": url}, {"_id": 1}) is None:
+                                self.last_op = "Querying."
+                                doc_storage = query_url(url)
+                                self.last_op = "Queried."
+                                relatedURLs = doc_storage.pop("related")
+                                runningColl.delete_one({"_id": url})
+                                storageColl.insert_one(doc_storage)
+                                self.last_op = "Inserted, appending."
+                                for task in relatedURLs:
+                                    condition_doc = {"_id": task.split("?")[0]}
+                                    if all((coll.find_one(condition_doc, {"_id": 1}) is None for coll in coll_list)):
+                                        waitingColl.insert_one(condition_doc)
+                            else:
+                                print("DUMP  : %s" % url)
+                            failed_times = 0
+                        except:
+                            print("ERROR :%s" % url)
+                            waitingColl.insert_one({"_id": url})
+                            runningColl.delete_one({"_id": url})
+                            failed_times += 1
+                            print("Errored: " + self.name)
+        except Exception as exc:
+            print("THREAD TERMINATED ABNORMALLY!" + self.name)
+            print(traceback.format_exc())
+            self.last_op = "\n" + traceback.format_exc()
+        finally:
+            print("THREAD TERMINATED NORMALLY!" + self.name)
+            print(traceback.format_exc())
+            self.last_op = "\n" + traceback.format_exc()
 
 
 if __name__ == '__main__':

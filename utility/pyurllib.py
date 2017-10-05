@@ -54,9 +54,11 @@ def get_request(url):
 def urlread2(url):
     try:
         if str(url).find("xhamster"):
-            obj = json.loads(urlread2(
-                "http://47.90.245.126/agency/get?url=%s" % base64.b64encode(url.encode("UTF-8")).decode()
-            ))
+            remote_url = "http://47.90.245.126:8087/agency/get?url=%s" % base64.b64encode(url.encode("UTF-8")).decode()
+            obj = json.loads(
+                urllib2.urlopen(
+                    remote_url
+                ).read())
             return base64.b64decode(obj["data"])
         else:
             return urllib2.urlopen(get_request(url), timeout=request_timeout).read()

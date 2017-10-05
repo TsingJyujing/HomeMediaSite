@@ -13,7 +13,7 @@ from bdata.porn.xvideos import *
 from config import shortcuts_saving_path, video_saving_path
 from utility import BackgroundTask
 from utility.pyurllib import DownloadTask
-from utility import video_processor_ffmpeg
+from utility import video_processor
 
 video_temp = "buffer/video_temp_%X.mp4"
 shortcuts_temp = "buffer/shortcuts_temp_%X.gif"
@@ -53,9 +53,9 @@ class XVideoDownloadTask(BackgroundTask):
 
         self.progress = 80
         self.progress_info = "Processing video ..."
-        vcap = video_processor_ffmpeg.get_video_cap(save_filename)
-        video_basic_info = video_processor_ffmpeg.get_video_basic_info(vcap)
-        video_processor_ffmpeg.get_video_preview(vcap, file_name=shortcuts_temp % self.key)
+        vcap = video_processor.get_video_cap(save_filename)
+        video_basic_info = video_processor.get_video_basic_info(vcap)
+        video_processor.get_video_preview(vcap, file_name=shortcuts_temp % self.key)
         vcap.release()
 
         self.progress = 95

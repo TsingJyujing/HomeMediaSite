@@ -1,4 +1,4 @@
-from moviepy.editor import VideoFileClip
+from moviepy.editor import VideoFileClip,VideoClip
 
 import images2gif
 import math
@@ -34,24 +34,10 @@ def get_video_preview(video_cap, file_name="out.gif", img_count=15, duration=0.5
     :param duration:  float
     :return: 
     """
-    image_list = list()
-    frame_count = int(math.floor(video_cap.duration * video_cap.fps))
-    frame_delta = int(math.floor(frame_count / img_count))
-    img_index = range(0, frame_count, frame_delta)
-    img_index = img_index[:img_count]
-    for frame_id in img_index:
-        frame = video_cap.get_frame(frame_id/video_cap.fps)
-        img = Image.fromarray(frame[:, :, [2, 1, 0]])
-        image_list.append(img)
 
-    images2gif.writeGif()
-    images2gif.writeGif(
-        filename=file_name,
-        images=image_list,
-        duration=duration,
-        repeat=True,
-        subRectangles=False
-    )
+    vc = VideoClip(make_frame=lambda t:video_cap.get_frame(t*video_cap.duration/8),duration=7.5).set_fps(2)
+    print(vc.fps)
+    vc.to_gif(file_name)
 
 
 if __name__ == "__main__":
