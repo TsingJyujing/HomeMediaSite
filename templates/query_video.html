@@ -168,8 +168,11 @@
                                         "target": "_blank"
                                     }).append(
                                         $("<img>").attr({
-                                            "src":preview_url,
-                                             "width": "100%",
+                                            //"src":preview_url,
+                                            "width": "100%",
+                                            "class": "lazy",
+                                            "data-original": preview_url,
+                                            "alt": "加载失败"
                                         })
                                     )
                                 ).append(
@@ -230,9 +233,18 @@
                         current_index++;
                         //mainBlock.append($("<br>"))
                     })
+                    set_lazy_images();
                 }
             )
         }
+
+        function set_lazy_images() {
+            $("img.lazy").lazyload({
+                effect: "fadeIn",
+                threshold: 180
+            });
+        }
+
 
         $(function () {
             refresh_video_list();

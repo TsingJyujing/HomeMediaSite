@@ -56,7 +56,10 @@ class xHamsterDownloadTask(BackgroundTask):
         vcap = video_processor.get_video_cap(save_filename)
         video_basic_info = video_processor.get_video_basic_info(vcap)
         video_processor.get_video_preview(vcap, file_name=shortcuts_temp % self.key)
-        vcap.release()
+        try:
+            vcap.release()
+        except:
+            pass
 
         self.progress = 95
         self.progress_info = "Inserting to database ..."
@@ -68,14 +71,11 @@ class xHamsterDownloadTask(BackgroundTask):
             "type": "m.xhamster.com"
         }
         video_basic_info["like"] = False
-        conn = connections.generate_mongodb_connection()
 
-        collection = conn.get_database("website_pron").get_collection("video_info")
-
-        index = collection.find({}, {"_id": 1}).sort("_id", -1).next()["_id"] + 1
-        video_basic_info["_id"] = index
-        collection.insert_one(video_basic_info)
-        conn.close()
+        with connections.MongoDBCollection("website_pron","video_info") as collection:
+            index = collection.find({}, {"_id": 1}).sort("_id", -1).next()["_id"] + 1
+            video_basic_info["_id"] = index
+            collection.insert_one(video_basic_info)
 
         shutil.move(shortcuts_temp % self.key, shortcuts_saving_path % index)
         shutil.move(video_temp % self.key, video_saving_path % index)

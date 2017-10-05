@@ -4,40 +4,33 @@
 Created on 2017-3-2
 @author: Yuan Yi fan
 """
-import os
-import re
-
 from bs4 import BeautifulSoup
-
 from utility.pyurllib import urlread2
-from utility.list_file_io import write_raw
 from config import XML_decoder
 
 
 def getSoup(url):
+    """
+    Get XML decode result and raw data from web agency
+    :param url:
+    :return:
+    """
     page_data = urlread2(url)
     return page_data, BeautifulSoup(page_data, XML_decoder)
 
 
 def getTitleFromSoup(sp):
+    """
+    Get title
+    :param sp:
+    :return:
+    """
     return sp.find('title').text
 
 
-def downloadImgList(pageID, imgList, homePath):
-    mkpath = homePath + "/%d/" % pageID
-    try:
-        os.makedirs(mkpath)
-    except:
-        pass
-    for imgURL in imgList:
-        fn = ".".join(re.findall('[^/\.]+', imgURL)[-2:])
-        write_raw("%s%s" % (mkpath, fn), urlread2(imgURL))
-
-
-def getJumpUrls(page_data):
-    res = re.findall("m\.xhamster\.com/movies/\d*?/", page_data)
-    jmp_url_list = ["https://" + x for x in set(res)]
-    return jmp_url_list
+def getRelatedVideosLink(sp):
+    return [x for x in [elem.get("href") for elem in sp.find_all("a") if elem.has_attr("href")] if
+            x.startswith("https://m.xhamster.com/videos") and x.endswith("?from=video_related")]
 
 
 def getCategories(sp):
@@ -63,11 +56,30 @@ def getTime(sp):
         return 0
 
 
-def getPreviewImgList(sp):
+def getPreviewImageList(sp):
     res = sp.find('div', attrs={"class": "screenshots_block clearfix", "id": "screenshots_block"})
     res = res.find_all('img')
     return [r.get('src') for r in res]
 
+
+def getAllPreviewImageList(sp):
+    first_image_url = sp.find(
+        'div',
+        attrs={
+            "class": "screenshots_block clearfix",
+            "id": "screenshots_block"
+        }
+    ).find('img').get("src")
+
+    first_image_url_split = first_image_url.split("/")
+    first_image_url_prefix = "/".join(first_image_url_split[:-1])
+    first_image_url_tail = "_".join(first_image_url_split[-1].split("_")[1:])
+    url_template = first_image_url_prefix + "/%d_" + first_image_url_tail
+    return [url_template % (i + 1) for i in range(10)]
+
+def getTopURLs(page_id):
+    _,sp = getSoup("https://m.xhamster.com/%d" % page_id)
+    return [elem.find("a").get("href") for elem in sp.find_all("div", attrs={"class": "item-container"})]
 
 def getDownloadLink(sp):
     res = sp.find('a', attrs={"class": "download", "id": "video_download"})
@@ -75,12 +87,3 @@ def getDownloadLink(sp):
     if not url_download[:5] == "https":
         url_download = "https" + url_download[4:]
     return url_download
-
-
-def getPageID(url):
-    res = re.findall("m\.xhamster\.com/movies/\d*?/", url)[0][22:-1]
-    return int(res)
-
-
-def genURL(page_id):
-    return "https://m.xhamster.com/movies/%d/" % page_id

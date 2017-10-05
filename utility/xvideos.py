@@ -8,13 +8,12 @@ Created on 2017-3-2
 import math
 import shutil
 import time
-
+import pymongo
 from bdata.porn.xvideos import *
 from config import shortcuts_saving_path, video_saving_path
 from utility import BackgroundTask
 from utility.pyurllib import DownloadTask
-from utility.connections import generate_mongodb_connection
-from utility import video_processor
+from utility import video_processor_ffmpeg
 
 video_temp = "buffer/video_temp_%X.mp4"
 shortcuts_temp = "buffer/shortcuts_temp_%X.gif"
@@ -54,9 +53,9 @@ class XVideoDownloadTask(BackgroundTask):
 
         self.progress = 80
         self.progress_info = "Processing video ..."
-        vcap = video_processor.get_video_cap(save_filename)
-        video_basic_info = video_processor.get_video_basic_info(vcap)
-        video_processor.get_video_preview(vcap, file_name=shortcuts_temp % self.key)
+        vcap = video_processor_ffmpeg.get_video_cap(save_filename)
+        video_basic_info = video_processor_ffmpeg.get_video_basic_info(vcap)
+        video_processor_ffmpeg.get_video_preview(vcap, file_name=shortcuts_temp % self.key)
         vcap.release()
 
         self.progress = 95
@@ -69,7 +68,7 @@ class XVideoDownloadTask(BackgroundTask):
             "type": "m.xhamster.com"
         }
         video_basic_info["like"] = False
-        conn = generate_mongodb_connection()
+        conn = pymongo.MongoClient()
 
         collection = conn.get_database("website_pron").get_collection("video_info")
 

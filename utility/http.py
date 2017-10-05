@@ -1,7 +1,10 @@
 # noinspection PyBroadException
 import json
+import logging
 import traceback
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpRequest
+
+logger = logging.getLogger("RequestLogger")
 
 
 # noinspection PyBroadException
@@ -53,6 +56,7 @@ def response_json_error_info(func):
     :param func: 
     :return: 
     """
+
     def wrapper(request):
         try:
             return func(request)
@@ -72,6 +76,7 @@ def response_json(func):
     :param func: 
     :return: 
     """
+
     def wrapper(request):
         try:
             return get_json_response(func(request))
@@ -81,5 +86,20 @@ def response_json(func):
                 "error_info": str(ex),
                 "trace_back": traceback.format_exc()
             })
+
+    return wrapper
+
+
+def logging_request(func):
+    """
+    Logging request to request logger
+    :param func:
+    :return:
+    """
+
+    def wrapper(request: HttpRequest) -> object:
+        logger.debug(
+            "Get a request to %s:%d:\n  %s" % (request.get_host(), request.get_port(), request.get_full_path()))
+        return func(request)
 
     return wrapper

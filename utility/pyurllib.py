@@ -27,6 +27,16 @@ from utility import BackgroundTask
 from config import user_agent, XML_decoder, request_timeout
 
 
+class URLReadThread(threading.Thread):
+    def __init__(self, URL=""):
+        super(URLReadThread, self).__init__()
+        self.URL = URL
+        self.data = None
+
+    def run(self):
+        self.data = urlread2(self.URL)
+
+
 def get_request_head(url):
     req_header = {
         'User-Agent': user_agent,
@@ -41,20 +51,17 @@ def get_request(url):
     return urllib2.Request(url=url, data=None, headers=get_request_head(url))
 
 
-def urlread2(url, retry_times=10):
+def urlread2(url):
     try:
         if str(url).find("xhamster"):
-            remoteurl = "http://47.90.245.126:8087/agency/get?url=%s" % base64.b64encode(url.encode("UTF-8")).decode()
-            print(remoteurl)
-            obj = json.loads(
-                urllib2.urlopen(
-                    remoteurl
-                ).read())
+            obj = json.loads(urlread2(
+                "http://47.90.245.126/agency/get?url=%s" % base64.b64encode(url.encode("UTF-8")).decode()
+            ))
             return base64.b64decode(obj["data"])
         else:
-            return urllib2.urlopen(get_request(url)).read()
+            return urllib2.urlopen(get_request(url), timeout=request_timeout).read()
     except:
-        print(traceback.format_exc())
+        print("Error while reading")
 
 
 def get_soup(url, retry_tms=10):

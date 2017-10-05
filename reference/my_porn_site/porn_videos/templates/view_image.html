@@ -1,0 +1,116 @@
+﻿<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>
+        {{ title }}
+    </title>
+	<!-- Bootstrap core CSS -->
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+	<script src="/static/js/jquery.js"></script>
+	<script src="/static/js/bootstrap.min.js"></script>
+    <style>
+        #right_down { width:64px; height: 64px; border: 0px solid #D4CD49; position:fixed; right:0; bottom:30% }
+        #left_down  { width:64px; height: 64px; border: 0px solid #D4CD49; position:fixed; left:0;  bottom:30% }
+		#right_up   { width:64px; height: 64px; border: 0px solid #D4CD49; position:fixed; right:0; top:30% }
+        #left_up    { width:64px; height: 64px; border: 0px solid #D4CD49; position:fixed; left:0;  top:30% }
+    </style>
+	<!--Code blocks-->
+    <script language="javascript">
+        /*
+         *   Jump to the page
+         */
+        function jump_to_id(){
+            var id = prompt("输入跳转的页面ID:","11702");//13082
+            if(id!=null){
+                location.href = "./?id="+id;
+            }
+        }
+        /*
+         *   star favourite image list
+         */
+        function star_this_page(id){
+            $.get("/star_image_page/?id=" + id,
+            function(data,status){
+                if (data=="liked"){
+                    alert("已经标记为喜欢");
+                }else if (data=="disliked"){
+                    alert("已经去除标记");
+                }else{
+                    alert("可能发生了未知的错误");
+                }
+            });
+        }
+        
+        function delete_images(id){
+            if(confirm("确定删除?")){
+                $.get("/delete_images?id=" + id, 
+                    function(data,status){
+                        if (data=="success"){
+                            alert("已经删除");
+                            window.history.back();
+                            location.reload();
+                        }else{
+                            alert("可能发生了未知的错误，未能删除！\n错误信息：" + data);
+                        }
+                    }
+                );
+            }
+        }
+    </script>
+</head>
+<body>
+
+<div class="container">
+    <h3 id="top">
+    {{title}}
+    </h3><br>
+    <button class="btn btn-default" onclick="javascript:location.href='/query_images';">回到图片首页</button>
+    <button class="btn btn-default" onclick="javascript:location.href='/random_images';">随机跳转</button>
+    <br><br>
+    <a href="/view_images?id={{lastInfo.id}}" >上一篇：{{lastInfo.title}}</a><br><br>
+    <a href="/view_images?id={{nextInfo.id}}" >下一篇：{{nextInfo.title}}</a><br><br>
+    <div class="col-md-{{imgInfo.frameSize}} column">
+        {{comment_text}}
+    </div>
+    {% for imgSubGroup in imgGroupList %}
+        <div class="row clearfix">
+            {% for imgInfo in imgSubGroup %}
+            <div class="col-md-{{imgInfo.frameSize}} column">
+                <img alt="{{mgInfo.filename}}" src="{{imgInfo.url}}"  style="display:block;width:100%;"/>
+            </div>
+            <br>
+            {% endfor %}
+        
+        </div><br>
+    {% empty %}
+        <h4>口咩~，并不能找到相应的图片。</h4>
+    {% endfor %}
+    
+    <a href="/view_images?id={{lastInfo.id}}" >上一篇：{{lastInfo.title}}</a><br><br>
+    <a href="/view_images?id={{nextInfo.id}}" >下一篇：{{nextInfo.title}}</a><br><br>
+    <p id="bottom">Tsing Jyujing @ 2017</p>
+</div>
+<div id="right_up">
+    <img src="/static/icons/delete.png" onclick="delete_images({{ id }})"></img>
+</div>
+
+<div id="right_down">
+    <img src="/static/icons/thumbup.png" onclick="star_this_page({{ id }})"></img>
+</div>
+
+<div id="left_up">
+	<a href="#top">
+		<img src="/static/icons/up.png"></img>
+	</a>
+</div>
+
+<div id="left_down">
+    <a href="#bottom">
+        <img src="/static/icons/down.png"></img>
+    </a>
+</div>
+</body>
+</html>

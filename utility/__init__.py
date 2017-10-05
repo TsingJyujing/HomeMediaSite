@@ -4,6 +4,8 @@ from abc import abstractmethod
 import logging
 
 
+
+
 class BackgroundTask(threading.Thread):
     def __init__(self,
                  name="default_name",
