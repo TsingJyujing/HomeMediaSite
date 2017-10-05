@@ -4,8 +4,7 @@ Created on 2017-2-4
 @author: Yuan Yi fan
 """
 
-from util.list_file_io import write_raw
-
+from utility.list_file_io import write_raw
 from utility.pyurllib import urlread2
 
 

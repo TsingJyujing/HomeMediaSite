@@ -1,4 +1,4 @@
-from moviepy.editor import VideoFileClip,VideoClip
+from moviepy.editor import VideoFileClip, VideoClip
 import math
 
 
@@ -32,8 +32,12 @@ def get_video_preview(video_cap, file_name="out.gif", img_count=15, duration=0.5
     :return: 
     """
 
-    vc = VideoClip(make_frame=lambda t:video_cap.get_frame(t*video_cap.duration/8),duration=7.5).set_fps(2)
-    print(vc.fps)
+    vc = VideoClip(
+        make_frame=lambda t: video_cap.get_frame(t / (img_count * duration)),
+        duration=img_count * duration
+    ).set_fps(
+        math.ceil(1 / duration)
+    )
     vc.to_gif(file_name)
 
 

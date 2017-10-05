@@ -1,6 +1,13 @@
 import re
-
 import os
+
+
+def get_extension(filename):
+    last_seg = filename.replace("\\", "/").split("/")[-1].split(".")
+    if len(last_seg) > 1:
+        return "." + last_seg[-1]
+    else:
+        return ""
 
 
 def filter_extension(filename, extensions):

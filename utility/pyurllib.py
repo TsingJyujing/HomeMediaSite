@@ -11,15 +11,14 @@ import string
 import re
 import logging
 import math
-import traceback
 import base64
 from bs4 import BeautifulSoup
 import threading
 
-try:
+try: # Python 2.x
     import urllib2
     from  urllib import urlretrieve
-except:
+except: # Python 3.x
     from urllib import request as urllib2
     from urllib.request import urlretrieve
 
@@ -42,7 +41,7 @@ def get_request_head(url):
         'User-Agent': user_agent,
         'Accept': '"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"',
         'Accept-Language': 'zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3',
-        'Host': re.findall('://.*?/', url, re.DOTALL)[0][3:-1]
+        'Host': re.findall('://.*?/', url, re.DOTALL)[0][3:-1].split(":")[0]
     }
     return req_header
 
@@ -52,16 +51,13 @@ def get_request(url):
 
 
 def urlread2(url):
-    try:
-        if str(url).find("xhamster"):
-            obj = json.loads(urlread2(
-                "http://47.90.245.126/agency/get?url=%s" % base64.b64encode(url.encode("UTF-8")).decode()
-            ))
-            return base64.b64decode(obj["data"])
-        else:
-            return urllib2.urlopen(get_request(url), timeout=request_timeout).read()
-    except:
-        print("Error while reading")
+    if str(url).find("http://m.xhamster.com"):
+        obj = json.loads(urlread2(
+            "http://47.90.245.126/agency/get?url=%s" % base64.b64encode(url.encode("UTF-8")).decode()
+        ))
+        return base64.b64decode(obj["data"])
+    else:
+        return urllib2.urlopen(get_request(url), timeout=request_timeout).read()
 
 
 def get_soup(url, retry_tms=10):

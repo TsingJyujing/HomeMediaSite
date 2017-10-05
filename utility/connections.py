@@ -96,7 +96,7 @@ except:
 try:
     import pymongo
 
-    generate_mongodb_connection = pymongo.MongoClient
+    # generate_mongodb_connection = pymongo.MongoClient
 
 
     class MongoDBConnection:

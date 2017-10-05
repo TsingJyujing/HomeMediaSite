@@ -16,6 +16,7 @@ class BackgroundTask(threading.Thread):
         self.timeout = timeout
         self.set_parent_progress = set_parent_progress
         self.terminated = False
+        self.current_logger = logging.getLogger("Background task: " + self.name)
 
     @property
     def progress_info(self):
@@ -23,7 +24,6 @@ class BackgroundTask(threading.Thread):
 
     @progress_info.setter
     def progress_info(self, value):
-        logging.debug("Task info changed:" + str(value))
         self.progress_info_value = value
 
     @property
