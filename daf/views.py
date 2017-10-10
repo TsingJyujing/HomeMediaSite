@@ -5,11 +5,11 @@ import json
 import shutil
 
 from django.views.decorators.csrf import csrf_exempt
-
+from agency.xhamster import *
 from config import *
-from utility.connections import MongoDBDatabase
+from utility.connections import MongoDBDatabase, MongoDBCollection
 from utility.files import filter_images
-from utility.http import response_json, get_host, get_request_with_default
+from utility.http_response import response_json, get_host, get_request_with_default
 from utility.list_file_io import read_raw
 
 
@@ -330,3 +330,39 @@ def remove_images(request):
             return {"status": "success"}
         else:
             return {"status": "error"}
+
+
+@response_json
+def get_xhamster_detail(request):
+    url = request.GET["url"]
+    if not str(url).startswith("http"):
+        url = "https://m.xhamster.com/videos/" + url
+    with MongoDBCollection("spider", "xhamster_storage") as coll:
+        doc = coll.find_one({"_id": url})
+        if doc is None:
+            data = query_url(url)
+            data.pop("related")
+            coll.insert_one(data)
+            return data
+        else:
+            return doc
+
+
+@response_json
+def query_xhamster_bylabel(request):
+    tags = json.loads(request.GET["tags"])
+    page_size = int(get_request_with_default(request, "n", "30"))
+    page_index = int(get_request_with_default(request, "p", "1"))
+    with MongoDBCollection("spider", "xhamster_storage") as coll:
+        return [x for x in coll.find({
+            "$or": [{"label": {"$regex": keyword, "$options": "i"}} for keyword in tags]
+        }).skip(
+            (page_index - 1) * page_size
+        ).limit(
+            page_size
+        )]
+
+
+@response_json
+def query_xhamster_top_urls(request):
+    return get_top_urls(int(request.GET["p"]))

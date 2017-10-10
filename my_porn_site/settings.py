@@ -113,9 +113,9 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
-STATIC_URL = '/static/'
+STATIC_URL = '/homedia/static/'
 
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, "static"),
 )
-print("Static file path generated:" + os.path.join(BASE_DIR, "static"))
+print("Static file path generated:\n" + "\n\t".join(STATICFILES_DIRS))

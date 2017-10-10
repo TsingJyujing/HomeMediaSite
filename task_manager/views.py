@@ -2,13 +2,12 @@ import string
 import time
 
 from django.views.decorators.csrf import csrf_exempt
-from utility.http import response_json
+from utility.http_response import response_json
 from utility.xhamster import xHamsterDownloadTask
-
-from utility.pyurllib import DownloadTask
+from utility.pyurllib import DownloadTask, RemoteDownloadTask
 from utility.xvideos import XVideoDownloadTask
 
-supported_task_type = {"download_file", "download_xvideo", "download_xhamster"}
+supported_task_type = {"download_file", "download_xvideo", "download_xhamster","download_file_agencily"}
 task_list = {}
 check_min_interval = 0.5
 
@@ -25,7 +24,7 @@ def append_task(request):
     """
     Append a task to task list and start it
     :param request: 
-    :return: 
+    :return:
     """
     task_type = request.POST["task_type"]
     assert task_type in supported_task_type, "Unsupported task type"
@@ -36,7 +35,10 @@ def append_task(request):
     elif task_type == "download_xhamster":
         task_append = xHamsterDownloadTask(parameter, key)
     elif task_type == "download_file":
-        task_append = DownloadTask(parameter, "buffer/%X" % key)
+        filename = parameter.split("/")[-1].split("?")[0]
+        task_append = DownloadTask(parameter, "buffer/%s" % filename)
+    elif task_type == "download_file_agencily":
+        task_append = RemoteDownloadTask(parameter)
     else:
         raise Exception("Unsupported task type (Fatal)")
     task_list[key] = task_append
@@ -63,12 +65,12 @@ def remove_task(request):
 @response_json
 def query_tasks(request):
     return_data = [{
-                       "id": key,
-                       "name": task_list[key].getName(),
-                       "type": str(type(task_list[key])),
-                       "progress": task_list[key].progress,
-                       "info": task_list[key].progress_info
-                   } for key in task_list.keys()]
+        "id": key,
+        "name": task_list[key].getName(),
+        "type": str(type(task_list[key])),
+        "progress": task_list[key].progress,
+        "info": task_list[key].progress_info
+    } for key in task_list.keys()]
     clear_invalid_tasks()
     return return_data
 

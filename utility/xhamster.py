@@ -8,6 +8,8 @@ import math
 import shutil
 import time
 
+import os
+
 from utility import video_processor
 
 from bdata.porn.xhamster import *
@@ -59,7 +61,7 @@ class xHamsterDownloadTask(BackgroundTask):
         try:
             vcap.release()
         except:
-            pass
+            del vcap
 
         self.progress = 95
         self.progress_info = "Inserting to database ..."
@@ -77,8 +79,14 @@ class xHamsterDownloadTask(BackgroundTask):
             video_basic_info["_id"] = index
             collection.insert_one(video_basic_info)
 
-        shutil.move(shortcuts_temp % self.key, shortcuts_saving_path % index)
-        shutil.move(video_temp % self.key, video_saving_path % index)
+
+        shutil.copy(shortcuts_temp % self.key, shortcuts_saving_path % index)
+        shutil.copy(video_temp % self.key, video_saving_path % index)
+        try:
+            os.remove(shortcuts_temp % self.key)
+            os.remove(video_temp % self.key)
+        except:
+            print("Warning: Exception while cleaning.")
 
         self.progress = 100
         self.terminated = True

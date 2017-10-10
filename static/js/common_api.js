@@ -137,7 +137,7 @@ sprintfWrapper = {
 
 sprintf = sprintfWrapper.init;
 
-function fotmat_video_time(seconds) {
+function format_video_time(seconds) {
     const second = seconds % 60;
     const minute = Math.floor(seconds / 60.0) % 60;
     const hour = Math.floor(seconds / 3600.0);

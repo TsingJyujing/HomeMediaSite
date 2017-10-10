@@ -8,13 +8,13 @@
         简单图帖检索系统
     </title>
     <!-- Bootstrap core CSS -->
-    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
-    <script src="/static/js/jquery.js"></script>
-    <script src="/static/js/bootstrap.min.js"></script>
+    <link href="/homedia/static/css/bootstrap.min.css" rel="stylesheet">
+    <script src="/homedia/static/js/jquery.js"></script>
+    <script src="/homedia/static/js/bootstrap.min.js"></script>
     <!--Code blocks-->
     <script language="javascript">
-        var page_count = 30;
-        var page_id = 1;
+        let page_count = 30;
+        let page_id = 1;
 
         function getUnselectedBlocks(){
             var arr = [];
@@ -52,7 +52,7 @@
         function refresh_images_list() {
             var keyword = $("#query_keyword").val();
             $.get(
-                "/query/images/bytitle",
+                "/homedia/query/images/bytitle",
                 {
                     key_words: keyword,
                     p: page_id, n: page_count
@@ -63,19 +63,19 @@
                         alert("没有任何结果T_T");
                         return;
                     }
-                    var mainBlock = $("#main_box");
-                    mainBlock.empty()
+                    const mainBlock = $("#main_box");
+                    mainBlock.empty();
                     //Clear block first
 
                     data.forEach(function (images_info) {
-                        console.log("Appending:" + images_info)
+                        console.log("Appending:" + images_info);
                         mainBlock.append(
                             $("<div></div>").attr({
-                                class: "col-md-12 column",
+                                "class": "col-md-12 column",
                             }).append($("<h4></h4>").html(
                                 $("<a></a>").attr(
                                     {
-                                        href: "/view/images?id=" + images_info._id + "&key_words=" + keyword,
+                                        href: "/homedia/view/images?id=" + images_info._id + "&key_words=" + keyword,
                                         target: "_blank"
                                     }
                                 ).text(
@@ -106,18 +106,18 @@
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
                     </button>
-                    <a class="navbar-brand" href="/view/query/novel">简单图片检索系统</a>
+                    <a class="navbar-brand" href="/homedia/view/query/novel">简单图片检索系统</a>
                 </div>
 
                 <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                     <ul class="nav navbar-nav">
                         <li>
-                            <a href="/view/favor/novel">收藏文献</a>
+                            <a href="/homedia/view/favor/novel">收藏文献</a>
                         </li>
                     </ul>
                     <form class="navbar-form navbar-left" onkeypress="click_first_page()" onsubmit="return false">
                         <div class="form-group">
-                            <input type="text" class="form-control" id="query_keyword" onkeypress="click_first_page()"/>
+                            <input type="text" class="form-control" id="query_keyword" onkeypress="click_first_page()" title=""/>
                         </div>
                         <button type="button" class="btn btn-default" onclick="click_first_page()">搜索</button>
 

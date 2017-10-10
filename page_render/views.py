@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.shortcuts import render
 
-from utility.http import get_request_with_default
+from utility.http_response import get_request_with_default
 
 
 def render_query_novel(request):
@@ -35,3 +35,14 @@ def render_view_images(request):
 
 def render_index_page(request):
     return render(request, "index.html")
+
+
+def render_xhamster_viewer(request):
+    return render(request, "xhamster_viewer.html", {
+        "xhamster_context": request.GET["id"]
+    })
+
+def render_xhamster_top_viewer(request):
+    return render(request, "xhamster_top.html", {
+        "xhamster_toppage": request.GET["p"]
+    })

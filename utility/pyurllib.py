@@ -15,10 +15,12 @@ import base64
 from bs4 import BeautifulSoup
 import threading
 
-try: # Python 2.x
+from utility.connections import ExtSSHConnection
+
+try:  # Python 2.x
     import urllib2
     from  urllib import urlretrieve
-except: # Python 3.x
+except:  # Python 3.x
     from urllib import request as urllib2
     from urllib.request import urlretrieve
 
@@ -51,13 +53,20 @@ def get_request(url):
 
 
 def urlread2(url):
-    if str(url).find("http://m.xhamster.com"):
-        obj = json.loads(urlread2(
-            "http://47.90.245.126/agency/get?url=%s" % base64.b64encode(url.encode("UTF-8")).decode()
-        ))
-        return base64.b64decode(obj["data"])
-    else:
-        return urllib2.urlopen(get_request(url), timeout=request_timeout).read()
+    try:
+        if str(url).find("xhamster") >= 0:
+            agency_url = "http://47.90.245.126/agency/get?url=%s" % base64.b64encode(url.encode("UTF-8")).decode()
+            obj = json.loads(
+                urllib2.urlopen(get_request(agency_url),
+                                timeout=request_timeout
+                                ).read()
+            )
+            return base64.b64decode(obj["data"])
+        else:
+            return urllib2.urlopen(get_request(url), timeout=request_timeout).read()
+    except Exception as ex:
+        print("Error while reading {} caused by {}".format(url, ex))
+        raise ex
 
 
 def get_soup(url, retry_tms=10):
@@ -129,7 +138,10 @@ class LiteDataDownloader(threading.Thread):
         self.tag = tag
 
     def run(self):
-        self.data = urlread2(url=self.image_url)
+        try:
+            self.data = urlread2(url=self.image_url)
+        except:
+            pass
 
     def write_file(self, filename):
         if self.data is not None:
@@ -193,3 +205,23 @@ class DownloadTask(BackgroundTask):
             filename=self.save_file,
             reporthook=lambda a, b, c: self.set_progress(a * b * 100.0 / c)
         )
+
+
+class RemoteDownloadTask(BackgroundTask):
+    def __init__(self, url, progress_callback=lambda value: None):
+        self.save_file = url.split("/")[-1].split("?")[0]
+        BackgroundTask.__init__(self, name="download:" + self.save_file)
+        self.set_parent_progress = progress_callback
+        self.target_url = url
+
+    def set_progress(self, value):
+        self.progress = value
+        self.set_parent_progress(value)
+
+    def run(self):
+        with ExtSSHConnection(host="47.90.245.126", user="root", passwd="dz979323846@") as ext_ssh:
+            self.progress = 10
+            ext_ssh.run_command("wget %s -O /root/download/%s" % (self.target_url, self.save_file))
+            self.progress = 60
+            ext_ssh.sftp_conn.get("/root/download/%s" % self.save_file, "buffer/%s" % self.save_file)
+            self.progress = 100

@@ -11,7 +11,7 @@ from utility.pyurllib import get_soup
 # http://cl.4ui.xyz/htm_data/16/1706/2443561.html
 # http://cl.4ui.xyz/htm_data/16/1706/2460332.html
 
-caoliu_host = "cl.4ui.xyz"  # 地址可能变化
+caoliu_host = "cl.hm8.xyz"  # 地址可能变化
 
 
 def get_page_title(page_soup):

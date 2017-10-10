@@ -29,7 +29,7 @@ from utility.connections import MongoDBCollection
 insert_lock = Lock()
 
 conn_pool_size = 32
-thread_count = 32
+thread_count = 40
 page_to_read = 10
 # 一个文件夹最少需要多少文件
 files_count_limit_delete_dir = 2
@@ -201,7 +201,8 @@ def process_page_url(url):
             print("Downloaded: %s" % url)
 
     except Exception as ex:
-        print("Error while downloading..." + traceback.format_exc())
+        if str(ex).find("URL is existed")<0:
+            print("Error while downloading..." + traceback.format_exc())
 
 
 def download_image_lists(n):

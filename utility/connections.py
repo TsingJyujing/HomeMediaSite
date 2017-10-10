@@ -83,7 +83,6 @@ try:
 except:
     print("Error while importing yaml/paramiko\nTry: pip install pyyaml paramiko")
 
-
     class SSHConnection:
         def __init__(self):
             raise Exception("Key modules hasn't imported.")
@@ -92,6 +91,7 @@ except:
     class ExtSSHConnection:
         def __init__(self):
             raise Exception("Key modules hasn't imported.")
+
 
 try:
     import pymongo

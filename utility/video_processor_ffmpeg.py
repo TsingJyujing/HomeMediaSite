@@ -1,3 +1,4 @@
+import os
 from moviepy.editor import VideoFileClip, VideoClip
 import math
 
@@ -31,17 +32,29 @@ def get_video_preview(video_cap, file_name="out.gif", img_count=15, duration=0.5
     :param duration:  float
     :return: 
     """
-
     vc = VideoClip(
         make_frame=lambda t: video_cap.get_frame(t / (img_count * duration)),
         duration=img_count * duration
-    ).set_fps(
+    )
+    vc = vc.set_fps(
         math.ceil(1 / duration)
     )
-    vc.to_gif(file_name)
+    vc.write_gif(file_name)
 
 
 if __name__ == "__main__":
-    vcap = get_video_cap("buffer/video_temp_15EE78F076B.mp4")
+
+    wrong_file = "D:/File/Downloads/P/4335292_young_japanese_chubby_big_boobs_jk_riko.mp4"
+    vcap = get_video_cap(wrong_file)
     print(get_video_basic_info(vcap))
-    get_video_preview(vcap, "buffer/out.gif")
+    get_video_preview(vcap, "D:/File/Downloads/P/out.gif")
+    vcap.reader.close()
+
+
+    test_dir = "D:/File/Downloads/P"
+    for file in os.listdir(test_dir):
+        vcap = get_video_cap(os.path.join(test_dir, file))
+        print(get_video_basic_info(vcap))
+        get_video_preview(vcap, os.path.join(test_dir, file + ".gif"))
+        vcap.reader.close()
+

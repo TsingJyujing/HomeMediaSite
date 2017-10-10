@@ -9,7 +9,7 @@ Created on 2017-2-4
 import os
 
 # 请求超时设置
-request_timeout = 25
+request_timeout = 600
 
 # 浏览器的User Agent参数
 user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " + \

@@ -8,11 +8,11 @@
         图片查看工具
     </title>
     <!-- Bootstrap core CSS -->
-    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
-    <script src="/static/js/jquery.js"></script>
-    <script src="/static/js/bootstrap.min.js"></script>
-    <script src="/static/js/jquery.lazyload.min.js"></script>
-    <script src="/static/js/common_api.js"></script>
+    <link href="/homedia/static/css/bootstrap.min.css" rel="stylesheet">
+    <script src="/homedia/static/js/jquery.js"></script>
+    <script src="/homedia/static/js/bootstrap.min.js"></script>
+    <script src="/homedia/static/js/jquery.lazyload.min.js"></script>
+    <script src="/homedia/static/js/common_api.js"></script>
     <!--Code blocks-->
     <script language="javascript">
         let images_pre_row = 2;
@@ -26,7 +26,7 @@
         function remove_images() {
             if (confirm("确认真的删除本帖?")) {
                 $.post(
-                    "/remove/images", {
+                    "/homedia/remove/images", {
                         "id": image_id
                     }, function (data) {
                         let jsObj = JSON.parse(data);
@@ -49,7 +49,7 @@
 
         function refresh_nearby() {
 
-            $.get("/query/images/nearby", {
+            $.get("/homedia/query/images/nearby", {
                 "id": image_id,
                 "key_words": query_keywords,
                 "dir": "last"
@@ -68,7 +68,7 @@
 
             });
 
-            $.get("/query/images/nearby", {
+            $.get("/homedia/query/images/nearby", {
                 "id": image_id,
                 "key_words": query_keywords,
                 "dir": "next"
@@ -105,7 +105,7 @@
         }
 
         function set_like_mode() {
-            $.post("/set/images/like", {
+            $.post("/homedia/set/images/like", {
                 "id": image_id,
                 "like": !current_index_like
             }, function (data) {
@@ -126,7 +126,7 @@
 
             let box_width = 12 / images_pre_row;
             $.get(
-                "/get/images",
+                "/homedia/get/images",
                 {
                     "id": image_id
                 }, function (data) {
@@ -206,7 +206,7 @@
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
                     </button>
-                    <a class="navbar-brand" href="/view/query/images">图片浏览器</a>
+                    <a class="navbar-brand" href="/homedia/view/query/images">图片浏览器</a>
                 </div>
 
                 <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
@@ -228,7 +228,6 @@
                         </li>
 
                     </ul>
-
 
                 </div>
 
