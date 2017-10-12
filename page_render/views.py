@@ -43,6 +43,4 @@ def render_xhamster_viewer(request):
     })
 
 def render_xhamster_top_viewer(request):
-    return render(request, "xhamster_top.html", {
-        "xhamster_toppage": request.GET["p"]
-    })
+    return render(request, "xhamster_top.html")
