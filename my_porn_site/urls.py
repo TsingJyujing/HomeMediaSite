@@ -25,10 +25,10 @@ urlpatterns = [
     url(r'^admin/', admin.site.urls),
 
     # 获取某一个ID下所有的图片和基础信息
-    url(r'^homedia/get/images/', get_images_info),
+    url(r'^homedia/get/images', get_images_info),
 
     # 获取某一个ID的小说内容和基础信息
-    url(r'^homedia/get/novel/', get_novel),
+    url(r'^homedia/get/novel', get_novel),
 
     # 依据标题搜索小说
     url(r'^homedia/query/novel/bytitle', query_novel_by_title),
@@ -99,14 +99,14 @@ urlpatterns = [
     # XHAMSTER预览界面
     url(r'^homedia/get/xhamster/info', get_xhamster_detail),
 
+    url(r'^homedia/set/xhamster/rate', set_xhamster_rate),
+
     # 根据标签查找相应的
     url(r'^homedia/query/xhamster/bylabel', query_xhamster_bylabel),
 
     # XHAMSTER首页数据
     url(r'^homedia/get/xhamster/top', query_xhamster_top_urls),
 
-    # 主页
-    url(r'^$', render_index_page),
-
+    url(r'^', render_index_page),
 
 ]

@@ -184,3 +184,33 @@ function close_window() {
     window.open('', '_self');
     window.close();
 }
+
+function notify_fail(text) {
+    $.notify({
+        // options
+        icon: 'glyphicon glyphicon-exclamation-sign',
+        message: text
+    }, {
+        // settings
+        type: 'danger',
+        placement: {
+            from: "bottom",
+            align: "right"
+        },
+    });
+}
+
+function notify_success(text) {
+    $.notify({
+        // options
+        icon: 'glyphicon glyphicon-ok-sign',
+        message: text
+    }, {
+        // settings
+        type: 'info',
+        placement: {
+            from: "bottom",
+            align: "right"
+        },
+    });
+}

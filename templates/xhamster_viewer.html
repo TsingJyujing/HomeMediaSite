@@ -40,6 +40,27 @@
             });
         }
 
+        function set_rate(rate) {
+            $.post(
+                "/homedia/set/xhamster/rate", {
+                    "url": current_id,
+                    "rate": rate
+                }, (data) => {
+                    try {
+                        const jdata = JSON.parse(data);
+                        if ("status" in jdata) {
+                            if (jdata["status"] === "error") {
+                                throw jdata["error_info"];
+                            }
+                        }
+                        notify_success("设置评分成功");
+                    } catch (err) {
+                        notify_fail("设置评分失败：" + err.message)
+                    }
+                }
+            )
+        }
+
         function append_to_download() {
             $.post(
                 "/homedia/append/task",
@@ -49,34 +70,12 @@
                 }, (text) => {
                     try {
                         const data = JSON.parse(text);
-                        if (data["status"]==="error"){
-                            throw "添加任务成功";
+                        if (data["status"] === "error") {
+                            throw data["error_info"];
                         }
-                        $.notify({
-                            // options
-                            icon: 'glyphicon glyphicon-ok-sign',
-                            message: "添加任务成功"
-                        }, {
-                            // settings
-                            type: 'info',
-                            placement: {
-                                from: "bottom",
-                                align: "right"
-                            },
-                        });
+                        notify_success("添加任务成功");
                     } catch (err) {
-                        $.notify({
-                            // options
-                            icon: 'glyphicon glyphicon-exclamation-sign',
-                            message: "添加任务失败" + err.message
-                        }, {
-                            // settings
-                            type: 'danger',
-                            placement: {
-                                from: "bottom",
-                                align: "right"
-                            },
-                        });
+                        notify_fail("添加任务失败" + err.message)
                     }
 
                 }

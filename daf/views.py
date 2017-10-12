@@ -332,6 +332,18 @@ def remove_images(request):
             return {"status": "error"}
 
 
+@csrf_exempt
+@response_json
+def set_xhamster_rate(req):
+    url = req.POST["url"]
+    if not str(url).startswith("http"):
+        url = "https://m.xhamster.com/videos/" + url
+    rate = int(req.POST["rate"])
+    with MongoDBCollection("spider", "xhamster_storage") as coll:
+        assert coll.update_one({"_id": url}, {
+            "$set": {"myrate": rate}}).modified_count > 0, "modify failed, no log's 'myrate' modified."
+
+
 @response_json
 def get_xhamster_detail(request):
     url = request.GET["url"]
