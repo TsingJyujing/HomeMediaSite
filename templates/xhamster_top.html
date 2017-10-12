@@ -3,9 +3,9 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <!--
+
     <meta name="viewport" content="width=device-width, initial-scale=0.8">
-    -->
+
 
     <title>
         XHAMSTER TOP VIDEOS
@@ -78,7 +78,8 @@
                                 image_row.append("&nbsp;")
                             });
                             text_row.append($("<h3></h3>").append($("<a></a>").attr({
-                                "href": "/homedia/view/xhamster/detail?id=" + url
+                                "href": "/homedia/view/xhamster/detail?id=" + url.match(new RegExp("[^/]*?$"))[0],
+                                "target":"_blank"
                             }).text(data["title"])));
                             set_lazy_images();
                         }

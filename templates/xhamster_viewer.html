@@ -46,6 +46,7 @@
                     "url": current_id,
                     "rate": rate
                 }, (data) => {
+                    init_page(current_id);
                     try {
                         const jdata = JSON.parse(data);
                         if ("status" in jdata) {
@@ -53,6 +54,7 @@
                                 throw jdata["error_info"];
                             }
                         }
+
                         notify_success("设置评分成功");
                     } catch (err) {
                         notify_fail("设置评分失败：" + err.message)
@@ -133,6 +135,7 @@
 
                     const myrate = "myrate" in data ? data["myrate"] : 0;
                     const star_group = $("#star_group");
+                    star_group.empty();
                     for (let i = 1; i <= 5; i++) {
                         star_group.append(
                             $("<button></button>").attr({
