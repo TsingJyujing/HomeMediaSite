@@ -200,15 +200,20 @@ class DownloadTask(BackgroundTask):
         self.set_parent_progress(value)
 
     def run(self):
-        urlretrieve(
-            url=self.target_url,
-            filename=self.save_file,
-            reporthook=lambda a, b, c: self.set_progress(a * b * 100.0 / c)
-        )
+        try:
+            urlretrieve(
+                url=self.target_url,
+                filename=self.save_file,
+                reporthook=lambda a, b, c: self.set_progress(a * b * 100.0 / c)
+            )
+        except Exception as ex:
+            print("Error in {} --> {}, use remote downloader.".format(self.target_url, self.save_file))
+            RemoteDownloadTask(self.target_url, self.save_file).run()
 
 
 class RemoteDownloadTask(BackgroundTask):
-    def __init__(self, url, progress_callback=lambda value: None):
+    def __init__(self, url, filename, progress_callback=lambda value: None):
+        self.filename = filename
         self.save_file = url.split("/")[-1].split("?")[0]
         BackgroundTask.__init__(self, name="download:" + self.save_file)
         self.set_parent_progress = progress_callback
@@ -221,7 +226,13 @@ class RemoteDownloadTask(BackgroundTask):
     def run(self):
         with ExtSSHConnection(host="47.90.245.126", user="root", passwd="dz979323846@") as ext_ssh:
             self.progress = 10
-            ext_ssh.run_command("wget %s -O /root/download/%s" % (self.target_url, self.save_file))
-            self.progress = 60
-            ext_ssh.sftp_conn.get("/root/download/%s" % self.save_file, "buffer/%s" % self.save_file)
+            command = 'wget "%s" -O "/root/download/%s"' % (self.target_url, self.save_file)
+            ext_ssh.run_command(command)
+            self.progress = 35
+            ext_ssh.sftp_conn.get(
+                "/root/download/%s" % self.save_file,
+                self.filename,
+                callback=lambda x, y: 60.0 * x / y + 35.0)
+            self.progress = 95
+            ext_ssh.sftp_conn.remove("/root/download/%s" % self.save_file)
             self.progress = 100

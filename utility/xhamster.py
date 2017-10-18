@@ -4,11 +4,15 @@
 Created on 2017-3-2
 @author: Yuan Yi fan
 """
+import json
 import math
 import shutil
 import time
 
 import os
+import traceback
+
+import sys
 
 from utility import video_processor
 
@@ -20,7 +24,6 @@ from utility import connections
 
 
 class xHamsterDownloadTask(BackgroundTask):
-
     def set_progress(self, value):
         self.progress = value
 
@@ -32,7 +35,7 @@ class xHamsterDownloadTask(BackgroundTask):
             self.key = int(key)
         self.page_url = page_url
 
-    def run(self):
+    def run_raisable(self):
         self.progress = 0
         self.progress_info = "Started, querying page data..."
         page_data, page_soup = getSoup(self.page_url)
@@ -55,13 +58,15 @@ class xHamsterDownloadTask(BackgroundTask):
 
         self.progress = 80
         self.progress_info = "Processing video ..."
-        vcap = video_processor.get_video_cap(save_filename)
-        video_basic_info = video_processor.get_video_basic_info(vcap)
-        video_processor.get_video_preview(vcap, file_name=shortcuts_temp % self.key)
-        try:
-            vcap.release()
-        except:
-            del vcap
+
+        # waiting for processing video
+
+        video_processor.commit_task(save_filename, save_filename, timeout=3600)
+
+        with open(save_filename + ".json", "rb") as fp_read:
+            video_basic_info = json.load(fp_read)
+
+        assert os.path.exists(save_filename + '.gif')
 
         self.progress = 95
         self.progress_info = "Inserting to database ..."
@@ -73,20 +78,27 @@ class xHamsterDownloadTask(BackgroundTask):
             "type": "m.xhamster.com"
         }
         video_basic_info["like"] = False
-        
-        with connections.MongoDBCollection("website_pron","video_info") as collection:
+
+        with connections.MongoDBCollection("website_pron", "video_info") as collection:
             index = collection.find({}, {"_id": 1}).sort("_id", -1).next()["_id"] + 1
             video_basic_info["_id"] = index
             collection.insert_one(video_basic_info)
 
-
-        shutil.copy(shortcuts_temp % self.key, shortcuts_saving_path % index)
+        shutil.copy(save_filename + ".gif", shortcuts_saving_path % index)
         shutil.copy(video_temp % self.key, video_saving_path % index)
         try:
-            os.remove(shortcuts_temp % self.key)
+            os.remove(save_filename + ".gif")
             os.remove(video_temp % self.key)
         except:
             print("Warning: Exception while cleaning.")
 
         self.progress = 100
         self.terminated = True
+
+    def run(self):
+        try:
+            self.run_raisable()
+        except Exception as ex:
+            print(traceback.format_exc(), file=sys.stderr)
+            self.progress = 0
+            self.terminated = True

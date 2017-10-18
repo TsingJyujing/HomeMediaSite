@@ -55,7 +55,7 @@
                     // Create container
                     const image_row = $("<div></div>").attr("class", "row");
                     const text_row = $("<div></div>").attr("class", "row");
-                    const block_container = $("<div></div>").attr("class", "col-md-12");
+                    const block_container = $("<div></div>").attr("class", "col-md-12 thumbnail");
                     main_box.append($("<div></div>").attr("class", "row").append(block_container));
                     block_container.append(image_row).append(text_row);
                     $.getJSON(
@@ -64,27 +64,28 @@
                         }, (data) => {
                             data["preview"].forEach((image_url) => {
                                 image_row.append($("<div></div>").attr({
-                                    "class": "col-md-4",
-                                    "height": "130px",
+                                    "class": "col-md-4 thumbnail",
+                                    "style": "width:300px",
                                 }).append(
                                     $("<img></img>").attr({
                                         "class": "lazy",
                                         "data-original": image_url,
                                         "alt": "加载失败",
-                                        "height": "100%",
-                                        "width": "100%"
+                                        "style": "height:200px"
                                     })
                                 ));
                                 image_row.append("&nbsp;")
                             });
                             text_row.append($("<h3></h3>").append($("<a></a>").attr({
                                 "href": "/homedia/view/xhamster/detail?id=" + url.match(new RegExp("[^/]*?$"))[0],
-                                "target":"_blank"
+                                "target": "_blank"
                             }).text(data["title"])));
                             set_lazy_images();
                         }
                     )
                 });
+
+                main_box.append("<br><br><br><br>");
             })
         }
 

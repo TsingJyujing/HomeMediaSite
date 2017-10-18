@@ -18,10 +18,10 @@ user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " + \
              "Safari/537.36 " + \
              "Edge/12.10240"
 
-# Ubuntu subsystem detect
+# 是否类Unix系统
 is_unix = os.getcwd().startswith("/")
 
-
+# 自动修改路径的程序
 def auto_fix_path(unix_path):
     if is_unix:
         return unix_path
@@ -39,6 +39,7 @@ shortcuts_temp = "buffer/shortcuts_temp_%X.gif"
 # Web主文件夹
 media_file_dir = auto_fix_path("/mnt/d/Data/WebServer/")
 
+# 视频文件/预览图片保存路径模板
 video_saving_path = media_file_dir + "video/file/porv_%d.mp4"
 shortcuts_saving_path = media_file_dir + "video/preview/prev_%d.gif"
 

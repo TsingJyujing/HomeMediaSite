@@ -15,7 +15,7 @@
     <script src="/homedia/static/js/jquery.lazyload.min.js"></script>
     <!--Code blocks-->
     <script language="javascript">
-        let page_count = 15;
+        let page_count = 16;
 
         let setPageSize = () => {
             page_count = parseInt(prompt("输入页面条数", page_count));
@@ -169,8 +169,7 @@
                                         "target": "_blank"
                                     }).append(
                                         $("<img>").attr({
-                                            //"src":preview_url,
-                                            "width": "100%",
+                                            "style": "height:200px",
                                             "class": "lazy",
                                             "data-original": preview_url,
                                             "alt": "加载失败"
