@@ -18,8 +18,11 @@
         let page_count = 16;
 
         let setPageSize = () => {
-            page_count = parseInt(prompt("输入页面条数", page_count));
-            refresh_video_list();
+            const jump_to = parseInt(prompt("输入页面条数", page_count));
+            if (jump_to>=1){
+                page_count = jump_to;
+                refresh_video_list();
+            }
         };
 
         let page_id = 1;

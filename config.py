@@ -21,12 +21,15 @@ user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " + \
 # 是否类Unix系统
 is_unix = os.getcwd().startswith("/")
 
+
 # 自动修改路径的程序
 def auto_fix_path(unix_path):
     if is_unix:
         return unix_path
     else:
         return unix_path.replace("/mnt/d/", "d:/")
+
+agency_address = "http://47.90.245.126"
 
 
 # XML解析器

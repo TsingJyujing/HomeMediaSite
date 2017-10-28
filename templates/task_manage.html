@@ -68,15 +68,27 @@
 
                         task_list.append(
                             $("<tr></tr>").append(
-                                $("<td></td>").text(info.name)
+                                $("<td></td>").attr({
+                                    "style":"width:20%"
+                                }).text(info.name)
                             ).append(
-                                $("<td></td>").html($("<div></div>").attr({
+                                $("<td></td>").attr({
+                                    "style":"width:50%"
+                                }).html($("<div></div>").attr({
                                     "class": "progress"
                                 }).append(progress_bar))
                             ).append(
-                                $("<td></td>").text("Info:" + info.info)
+                                $("<td></td>").attr({
+                                    "style":"width:15%"
+                                }).append(
+                                $("<div></div>").attr(
+                                    "title",info.info
+                                    ).text(
+                                    "Downloading..."
+                                    ))
                             ).append(
                                 $("<button></button>").attr({
+                                    sytle:"width:15%",
                                     type: "button",
                                     class: "btn btn-default btn-sm",
                                     id: "btn_refresh",

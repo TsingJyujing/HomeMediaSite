@@ -45,12 +45,21 @@
             refresh_page(page_id);
         }
 
+        function click_to_page(){
+            const jump_to = parseInt(prompt("输入需要跳转的页数"));
+            if (jump_to>=1){
+                page_id = jump_to;
+                refresh_page(page_id);
+            }
+        }
+
         function refresh_page(page_index) {
             $.getJSON("/homedia/get/xhamster/top", {
                 "p": page_index
             }, (data) => {
                 const main_box = $("#main_box");
                 main_box.empty();
+                main_box.append('<br><br><br><br>')
                 data.forEach((url) => {
                     // Create container
                     const image_row = $("<div></div>").attr("class", "row");
@@ -65,7 +74,7 @@
                             data["preview"].forEach((image_url) => {
                                 image_row.append($("<div></div>").attr({
                                     "class": "col-md-4 thumbnail",
-                                    "style": "width:300px",
+                                    "style": "width:320px,height:240px",
                                 }).append(
                                     $("<img></img>").attr({
                                         "class": "lazy",
@@ -199,6 +208,9 @@
                         </li>
                         <li>
                             <a href="#" onclick="click_next_page()">></a>
+                        </li>
+                        <li>
+                            <a href="#" onclick="click_to_page()">--></a>
                         </li>
                     </ul>
                 </div>

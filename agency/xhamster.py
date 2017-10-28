@@ -1,10 +1,9 @@
-import base64
 import json
-
-from config import request_timeout
+import base64
+from config import request_timeout, agency_address
 from utility.pyurllib import URLReadThread
 
-agency_address = "http://47.90.245.126"
+
 
 
 def auto_retry_url_read_json(url, retry_times=5):

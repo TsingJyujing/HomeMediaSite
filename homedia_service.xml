@@ -1,0 +1,8 @@
+<service>
+    <id>Homedia</id>
+    <name>Homedia</name>
+    <description>Homedia 视频网站</description>
+    <executable>D:\Anaconda3\python.exe</executable>
+    <arguments>E:\Project\Github\HomeMediaSite\manage.py runserver --noreload 0.0.0.0:8001</arguments>
+    <logmode>rotate</logmode>
+</service>

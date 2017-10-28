@@ -33,6 +33,9 @@ def render_view_images(request):
     })
 
 
+def render_homedia_index_page(request):
+    return render(request, "homedia.html")
+
 def render_index_page(request):
     return render(request, "index.html")
 

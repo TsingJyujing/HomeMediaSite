@@ -1,0 +1,2 @@
+homedia_service.exe restart
+pause
