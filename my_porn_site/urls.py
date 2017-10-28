@@ -106,9 +106,11 @@ urlpatterns = [
 
     # XHAMSTER首页数据
     url(r'^homedia/get/xhamster/top', query_xhamster_top_urls),
+    # XHAMSTER首页数据
+    url(r'^homedia/get/xhamster/query', query_xhamster_query_urls),
 
     url(r'^homedia$', render_homedia_index_page),
-    
+
     url(r'^$', render_index_page),
 
 ]

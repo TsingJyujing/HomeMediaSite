@@ -378,3 +378,7 @@ def query_xhamster_bylabel(request):
 @response_json
 def query_xhamster_top_urls(request):
     return get_top_urls(int(request.GET["p"]))
+
+@response_json
+def query_xhamster_query_urls(request):
+    return get_query_urls(request.GET["q"],int(request.GET["p"]))

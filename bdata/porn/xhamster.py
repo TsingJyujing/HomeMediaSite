@@ -4,6 +4,8 @@
 Created on 2017-3-2
 @author: Yuan Yi fan
 """
+from typing import Iterable
+
 from bs4 import BeautifulSoup
 from utility.pyurllib import urlread2
 from config import XML_decoder
@@ -77,13 +79,24 @@ def getAllPreviewImageList(sp):
     url_template = first_image_url_prefix + "/%d_" + first_image_url_tail
     return [url_template % (i + 1) for i in range(10)]
 
-def getTopURLs(page_id):
-    _,sp = getSoup("https://m.xhamster.com/%d" % page_id)
-    return [elem.find("a").get("href") for elem in sp.find_all("div", attrs={"class": "item-container"})]
 
-def getDownloadLink(sp):
+def getDownloadLink(sp: BeautifulSoup) -> str:
     res = sp.find('a', attrs={"class": "download", "id": "video_download"})
     url_download = res.get('href')
     if not url_download[:5] == "https":
         url_download = "https" + url_download[4:]
     return url_download
+
+
+def getTopURLs(page_id: int) -> Iterable[str]:
+    _, sp = getSoup("https://m.xhamster.com/%d" % page_id)
+    return __get_urls_from_soup(sp)
+
+
+def queryKeywords(key_word: str) -> Iterable[str]:
+    _, sp = getSoup("https://m.xhamster.com/search?q=%s" % key_word.replace(" ", "+"))
+    return __get_urls_from_soup(sp)
+
+
+def __get_urls_from_soup(sp: BeautifulSoup) -> Iterable[str]:
+    return [elem.find("a").get("href") for elem in sp.find_all("div", attrs={"class": "item-container"})]

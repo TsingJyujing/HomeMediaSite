@@ -31,77 +31,108 @@
         function click_last_page() {
             if (page_id > 1) {
                 page_id--;
-                refresh_page(page_id);
+                refresh_page();
             }
         }
 
         function click_next_page() {
             page_id++;
-            refresh_page(page_id);
+            refresh_page();
         }
 
         function click_first_page() {
             page_id = 1;
-            refresh_page(page_id);
+            refresh_page();
         }
 
-        function click_to_page(){
+        function click_to_page() {
             const jump_to = parseInt(prompt("输入需要跳转的页数"));
-            if (jump_to>=1){
+            if (jump_to >= 1) {
                 page_id = jump_to;
                 refresh_page(page_id);
             }
         }
 
-        function refresh_page(page_index) {
-            $.getJSON("/homedia/get/xhamster/top", {
-                "p": page_index
-            }, (data) => {
-                const main_box = $("#main_box");
-                main_box.empty();
-                main_box.append('<br><br><br><br>')
-                data.forEach((url) => {
-                    // Create container
-                    const image_row = $("<div></div>").attr("class", "row");
-                    const text_row = $("<div></div>").attr("class", "row");
-                    const block_container = $("<div></div>").attr("class", "col-md-12 thumbnail");
-                    main_box.append($("<div></div>").attr("class", "row").append(block_container));
-                    block_container.append(image_row).append(text_row);
-                    $.getJSON(
-                        "/homedia/get/xhamster/info", {
-                            "url": url
-                        }, (data) => {
-                            data["preview"].forEach((image_url) => {
-                                image_row.append($("<div></div>").attr({
-                                    "class": "col-md-4 thumbnail",
-                                    "style": "width:320px,height:240px",
-                                }).append(
-                                    $("<img></img>").attr({
-                                        "class": "lazy",
-                                        "data-original": image_url,
-                                        "alt": "加载失败",
-                                        "style": "height:200px"
-                                    })
-                                ));
-                                image_row.append("&nbsp;")
-                            });
-                            text_row.append($("<h3></h3>").append($("<a></a>").attr({
-                                "href": "/homedia/view/xhamster/detail?id=" + url.match(new RegExp("[^/]*?$"))[0],
-                                "target": "_blank"
-                            }).text(data["title"])));
-                            set_lazy_images();
-                        }
-                    )
-                });
+        function refresh_page_by_query(keywords, page_index) {
+            $.getJSON(
+                "/homedia/get/xhamster/query", {
+                    "q": keywords,
+                    "p": page_index
+                }, refresh_page_by_data
+            )
+        }
 
-                main_box.append("<br><br><br><br>");
-            })
+        function refresh_page_by_index(page_index) {
+            $.getJSON(
+                "/homedia/get/xhamster/top", {
+                    "p": page_index
+                }, refresh_page_by_data
+            )
+        }
+
+        function refresh_page() {
+            const key_word = $("#query_keyword").val();
+            if (key_word === "") {
+                console.log("refresh page by index.");
+                refresh_page_by_index(page_id);
+            } else {
+                console.log("refresh page by keyword:" + key_word);
+                refresh_page_by_query(key_word, page_id);
+            }
         }
 
         $(init_function);
 
         function init_function() {
-            refresh_page(page_id);
+            refresh_page();
+        }
+
+        function refresh_page_by_data(data) {
+            const main_box = $("#main_box");
+            main_box.empty();
+            main_box.append('<br><br><br><br>');
+            data.forEach((url) => {
+                // Create container
+                const image_row = $("<div></div>").attr("class", "row");
+                const text_row = $("<div></div>").attr("class", "row");
+                const block_container = $("<div></div>").attr("class", "col-md-12 thumbnail");
+                main_box.append($("<div></div>").attr("class", "row").append(block_container));
+                block_container.append(image_row).append(text_row);
+                $.getJSON(
+                    "/homedia/get/xhamster/info", {
+                        "url": url
+                    }, (data) => {
+                        const append_image_url = (image_url) => {
+                            image_row.append($("<div></div>").attr({
+                                "class": "col-md-12",
+                                "style": "min-height:240px"
+                            }).append(
+                                $("<img></img>").attr({
+                                    "class": "lazy",
+                                    "data-original": image_url,
+                                    "alt": "加载失败",
+                                    "style": "min-height:240px"
+                                })
+                            ));
+                            image_row.append("<br>");
+                        };
+                        append_image_url(data["preview_all"][5]);
+                        text_row.append(
+                            $("<div></div>").attr({
+                                "class": "col-md-12",
+                            }).append(
+                                $("<h3></h3>").append($("<a></a>").attr({
+                                    "href": "/homedia/view/xhamster/detail?id=" + url.match(new RegExp("[^/]*?$"))[0],
+                                    "target": "_blank"
+                                }).text(data["title"]))
+                            )
+                        );
+                        set_lazy_images();
+                    }
+                )
+            });
+
+            main_box.append("<br><br><br><br>");
         }
     </script>
 </head>

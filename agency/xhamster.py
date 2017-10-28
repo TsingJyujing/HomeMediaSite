@@ -30,10 +30,14 @@ def url_read_json(url):
     return obj
 
 
-def get_top_urls(page_index):
+def get_top_urls(page_index:int):
     return [base64.b64decode(x).decode("UTF-8") for x in
             auto_retry_url_read_json(agency_address + "/agency/xhamster/query/top/?index=%d" % page_index)["data"]]
 
+
+def get_query_urls(key_word:str,page_index:int):
+    return [base64.b64decode(x).decode("UTF-8") for x in
+            auto_retry_url_read_json(agency_address + "/agency/xhamster/query/search/?query=%s&index=%d" % (key_word,page_index))["data"]]
 
 def query_url(url):
     return auto_retry_url_read_json(
