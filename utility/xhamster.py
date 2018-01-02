@@ -64,7 +64,7 @@ class xHamsterDownloadTask(BackgroundTask):
         video_processor.commit_task(save_filename, save_filename, timeout=3600)
 
         with open(save_filename + ".json", "rb") as fp_read:
-            video_basic_info = json.load(fp_read)
+            video_basic_info = json.loads(fp_read.read())
 
         assert os.path.exists(save_filename + '.gif')
 

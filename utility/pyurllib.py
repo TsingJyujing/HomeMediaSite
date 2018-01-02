@@ -12,6 +12,9 @@ import re
 import logging
 import math
 import base64
+import requests
+from http.cookiejar import CookieJar
+
 from bs4 import BeautifulSoup
 import threading
 
@@ -26,6 +29,18 @@ except:  # Python 3.x
 
 from utility import BackgroundTask
 from config import user_agent, XML_decoder, request_timeout
+
+urllib2.install_opener(urllib2.build_opener(urllib2.HTTPCookieProcessor(CookieJar())))
+
+pac_list = ("google", "xhamster.com", "t66y.com")
+
+
+def PAC_list(url: str) -> bool:
+    return any((
+        any((
+            host.find(keyword) >= 0 for keyword in pac_list
+        )) for host in re.findall("^(https://.*?/|http://.*?/)",url)
+    ))
 
 
 class URLReadThread(threading.Thread):
@@ -43,27 +58,54 @@ def get_request_head(url):
         'User-Agent': user_agent,
         'Accept': '"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"',
         'Accept-Language': 'zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3',
-        'Host': re.findall('://.*?/', url, re.DOTALL)[0][3:-1].split(":")[0]
+        'Host': re.findall('://.*?/', url, re.DOTALL)[0][3:-1].split(":")[0],
+        "Connection": "keep-alive"
     }
     return req_header
 
 
 def get_request(url):
-    return urllib2.Request(url=url, data=None, headers=get_request_head(url))
+    return urllib2.Request(
+        url=url,
+        data=None,
+        headers=get_request_head(url)
+    )
 
 
-def urlread2(url):
+def GET(url, retry_times=1):
+    exception = None
+    for i in range(retry_times):
+        try:
+            response = requests.get(url, timeout=120)
+            if response.status_code == 200:  # Successful request
+                return response.content
+            else:
+                raise Exception("Http error:" + response.status_code)
+        except:
+            try:
+                return urlread2_agency(url)
+            except Exception as ex:
+                exception = ex
+    else:
+        raise exception
+
+def urlread2_agency(url:str):
+    agency_url = "http://47.90.245.126/agency/get?url=%s" % base64.b64encode(url.encode("UTF-8")).decode()
+    obj = json.loads(
+        urllib2.urlopen(
+            url=get_request(agency_url),
+            timeout=request_timeout
+        ).read().decode()
+    )
+    return base64.b64decode(obj["data"])
+
+def urlread2(url:str):
     try:
-        if str(url).find("xhamster") >= 0:
-            agency_url = "http://47.90.245.126/agency/get?url=%s" % base64.b64encode(url.encode("UTF-8")).decode()
-            obj = json.loads(
-                urllib2.urlopen(get_request(agency_url),
-                                timeout=request_timeout
-                                ).read()
-            )
-            return base64.b64decode(obj["data"])
+        if PAC_list(url):
+            return urlread2_agency(url)
         else:
-            return urllib2.urlopen(get_request(url), timeout=request_timeout).read()
+            return urllib2.urlopen(
+                get_request(url), timeout=request_timeout).read()
     except Exception as ex:
         print("Error while reading {} caused by {}".format(url, ex))
         raise ex
@@ -131,17 +173,24 @@ class LiteDataDownloader(threading.Thread):
     小文件下载线程(数据缓存)
     """
 
-    def __init__(self, image_url, tag):
+    def __init__(self, image_url, tag, retry_times=1):
         threading.Thread.__init__(self)
         self.image_url = image_url
         self.data = None
         self.tag = tag
+        self.retry_times = retry_times
 
     def run(self):
-        try:
-            self.data = urlread2(url=self.image_url)
-        except:
-            pass
+        for i in range(self.retry_times):
+            try:
+                self.data = urlread2(url=self.image_url)
+                return
+            except:
+                try:
+                    self.data =urlread2_agency(url=self.image_url)
+                    return
+                except:
+                    pass
 
     def write_file(self, filename):
         if self.data is not None:

@@ -22,7 +22,7 @@ def url_read_json(url):
     th.join(request_timeout)
     if th.data is None:
         raise Exception("Error while reading API:" + url)
-    obj = json.loads(th.data)
+    obj = json.loads(th.data.decode())
     if "status" in obj:
         if obj["status"] == "error":
             error_info = "\n\n".join(("%s\n%s" % (key, obj[key]) for key in obj))

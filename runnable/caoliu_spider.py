@@ -6,44 +6,46 @@ Created on 2017-3-2
 """
 import os
 import shutil
+from io import BytesIO
 import datetime
+from concurrent.futures import ThreadPoolExecutor
+import re
+from typing import List
+import numpy
+import face_recognition
 import threadpool
 import traceback
-import cv2
 from PIL import Image
 from threading import Lock
 # 如果直接执行的时候需要注意引用的库
 import sys
-
-
-
 sys.path.append("..")
+from imagehash import average_hash
+from pyseaweed import WeedFS
+from utility.images_pool import hash_algorithm
 from utility.files import get_extension
 # from utility.str_util import *
 from bdata.porn.caoliu import *
 from utility.list_operation import list_unique
-from utility.pyurllib import LiteDataDownloader
-from config import local_images_path
+from utility.pyurllib import LiteDataDownloader, GET
 from utility.connections import MongoDBCollection
 
 insert_lock = Lock()
 
 conn_pool_size = 32
-thread_count = 40
-page_to_read = 10
+thread_count = 16
+page_to_read = 15
 # 一个文件夹最少需要多少文件
 files_count_limit_delete_dir = 2
 # 图片文件保存的位置
-
 # 定时运行参数
 sleep_seconds = 23 * 3600  # 23Hours
-
 # 初始化模型
-model_file = "models/haarcascade_frontalface_alt2.xml"
-face_cascade = cv2.CascadeClassifier(model_file)
+
+download_pool = ThreadPoolExecutor(conn_pool_size)
 
 
-def count_face(image_name, min_window=1.2, max_window=5):
+def count_face(image_name, min_window: float = 1.2, max_window: float = 5):
     """
     Count faces in file by given parameters
     :param image_name:
@@ -58,7 +60,31 @@ def count_face(image_name, min_window=1.2, max_window=5):
         return 0
 
 
-def count_face_in_dir(dir_name, min_window=1.2, max_window=5):
+def count_face_on_weed(weed_fid, min_window: float = 1.2, max_window: float = 5):
+    """
+    Count faces in file by given parameters
+    :param image_name:
+    :param min_window:
+    :param max_window:
+    :return:
+    """
+    try:
+        with BytesIO(GET("http://127.0.0.1:9301/" + weed_fid,3)) as fp:
+            face_count = len(
+                face_recognition.face_locations(
+                    numpy.array(Image.open(fp))
+                )
+            )
+            print("There're {} faces in image {}".format(face_count,weed_fid))
+            return face_count
+    except:
+        print(traceback.format_exc(), file=sys.stderr)
+        return 0
+
+def count_face_in_weed(weed_fid_list: list, min_window: float = 1.2, max_window: float = 5):
+    return sum((count_face_on_weed(weed_fid, min_window, max_window) for weed_fid in weed_fid_list))
+
+def count_face_in_dir(dir_name: str , min_window: float = 1.2, max_window: float = 5):
     """
     Count faces in dir
     :param dir_name:
@@ -70,8 +96,21 @@ def count_face_in_dir(dir_name, min_window=1.2, max_window=5):
         [count_face(os.path.join(dir_name, filename), min_window, max_window) for filename in os.listdir(dir_name)])
 
 
+def count_face_in_weed(weed_fids: List[str], min_window: float = 1.2, max_window: float = 5):
+    """
+    Count faces in dir
+    :param dir_name:
+    :param min_window:
+    :param max_window:
+    :return:
+    """
+    return sum(
+        [count_face_on_weed(weed_fid, min_window, max_window) for weed_fid in weed_fids])
+
+
 def write_face_count(coll, index, face_count):
-    return coll.update_one({"_id": {"$eq": index}}, {"face_count": face_count}).modified_count > 0
+    coll.update_one({"_id": index}, {"$set": {"face_count": face_count}})
+    return true
 
 
 def read_face_count(coll, index):
@@ -79,23 +118,32 @@ def read_face_count(coll, index):
 
 
 def get_face_uncounted_index(coll):
-    return [x["_id"] for x in coll.find({"face_count": {"$eq": None}})]
+    return [x["_id"] for x in coll.find({"face_count": None}, {"_id": 1}).sort("_id", -1)]
 
 
 def count_faces():
+    def weed_url_to_fid(weed_url: str) -> str:
+        parts = weed_url.split("/")
+        return parts[0] + "," + parts[1]
+
     try:
-        with MongoDBCollection("website_pron", "images_info") as coll:
+        with MongoDBCollection("website_pron", "images_info_ahash_weed") as coll:
             indexes = get_face_uncounted_index(coll)
+            print("{} image lists uncounted.".format(len(indexes)))
             for i in indexes:
                 try:
-                    dir_name = os.path.join(local_images_path, "%08d" % i)
-                    face = count_face_in_dir(dir_name, 1.1, 5)
+                    info = coll.find_one({"_id": i})
+                    face = count_face_in_weed([
+                        weed_url_to_fid(image_url)
+                        for image_url in info["image_list"]
+                    ], 1.1, 5)
                     write_face_count(coll, i, face)
                     print("There're %d faces in index=%d" % (face, i))
-                except:
+                except Exception as ex:
                     print("Error while counting faces in %d" % i)
+                    print(traceback.format_exc(), file=sys.stderr)
     except Exception as err:
-        print("Error while counting faces:\n" + traceback.format_exc())
+        print("Error while counting faces:\n" + traceback.format_exc(), file=sys.stderr)
 
 
 def is_valid_image(filename):
@@ -109,31 +157,6 @@ def is_valid_image(filename):
         return False
 
 
-def remove_empty_dir(delete_limit):
-    try:
-        with MongoDBCollection("website_pron", "images_info") as coll:
-            img_pool_dirs = os.listdir(local_images_path)
-            for img_dir in img_pool_dirs:
-                img_list_index = int(img_dir)
-                current_dir = os.path.join(local_images_path, img_dir)
-                files_in_dir = os.listdir(current_dir)
-                for filename in files_in_dir:
-                    full_filename = os.path.join(current_dir, filename)
-                    is_valid = is_valid_image(full_filename)
-                    if not is_valid:
-                        os.remove(full_filename)
-                        print("Image: %s deleted" % full_filename)
-                files_in_dir = os.listdir(current_dir)
-                if len(files_in_dir) <= delete_limit:
-                    if not get_is_like(coll, img_list_index):
-                        shutil.rmtree(current_dir)
-                        remove_log(coll, img_list_index)
-                        print("%d files in %s, removed." % (len(files_in_dir), img_dir))
-
-    except Exception as err:
-        print("Error while removing empty dir:\n" + traceback.format_exc())
-
-
 def get_urls(n):
     urls = []
     for i in range(n):
@@ -144,7 +167,7 @@ def get_urls(n):
 
 
 def remove_log(coll, index):
-    return coll.delete_one({"_id": {"$eq": index}}).deleted_count > 0
+    return coll.delete_one({"_id": index}).deleted_count > 0
 
 
 def is_url_existed(coll, url):
@@ -155,7 +178,7 @@ def get_is_like(coll, index):
     return coll.find({"_id": index}).next()["like"]
 
 
-def insert_log(coll, title, url, comment_text, image_urls):
+def insert_log(coll, title, url, comment_text, image_urls, image_list):
     try:
         insert_lock.acquire()
         next_index = coll.find().sort("_id", -1).next()["_id"] + 1
@@ -166,15 +189,39 @@ def insert_log(coll, title, url, comment_text, image_urls):
             "block": "daguerre".upper(),
             "like": False,
             "image_urls": image_urls,
+            "image_list": image_list,
             "comment": comment_text
         }).inserted_id
     finally:
         insert_lock.release()
 
 
+def GET_to_weed_hash(url: str):
+    try:
+        image_bytes = GET(url, 6)
+        with MongoDBCollection("website_pron", "image_hash_pool") as coll:
+            with BytesIO(image_bytes) as bio:
+                hash_info = hash_algorithm(bio)
+            find_hash_in_lib = coll.find_one({"_id": hash_info})
+            if find_hash_in_lib is None:
+                weed_fs = WeedFS()
+                weed_fid = weed_fs.upload_file(stream=image_bytes,name=url)
+                find_hash_in_lib = {
+                    "_id": hash_info,
+                    "weed_fid": weed_fid,
+                    "file_type": re.findall("\.(\w+)$", url)[0]
+                }
+                coll.insert_one(find_hash_in_lib)
+            return find_hash_in_lib
+    except:
+        print("Error while get+insert image from web:\n{}\n".format(url), file=sys.stderr)
+        print(traceback.format_exc(), file=sys.stderr)
+        return None
+
+
 def process_page_url(url):
     try:
-        with MongoDBCollection("website_pron", "images_info") as coll:
+        with MongoDBCollection("website_pron", "images_info_ahash_weed") as coll:
             if is_url_existed(coll, url.replace("http://%s/" % caoliu_host, "/")):
                 raise Exception("URL is existed in db!")
             page_soup = get_soup(url)
@@ -182,26 +229,19 @@ def process_page_url(url):
             images = get_page_images(page_soup)
             text = get_page_text(page_soup)
             # 下载小文件
-            img_task_list = [
-                LiteDataDownloader(image_url=img, tag="%d%s" % (i, get_extension(img)))
-                for i, img in enumerate(images)]
-            for task in img_task_list:
-                task.start()
-            for task in img_task_list:
-                task.join()
-            page_index = insert_log(coll, title, url, text, images)
-            page_path = os.path.join(local_images_path, "%08d" % page_index)
-            try:
-                os.makedirs(page_path)
-            except:
-                print("dir may existed.")
-            for task in img_task_list:
-                task.write_file(os.path.join(page_path, task.tag))
-            # create tasks
-            print("Downloaded: %s" % url)
+
+            images_buffer = (
+                download_pool.submit(GET_to_weed_hash, img).result()
+                for img in images
+            )
+            page_index = insert_log(coll, title, url, text, images, [
+                img_info["weed_fid"].replace(",", "/") + "/" + img_info["_id"] + "." + img_info["file_type"]
+                for img_info in images_buffer if img_info is not None
+            ])
+            print("Downloaded: {}-->{}".format(url, page_index))
 
     except Exception as ex:
-        if str(ex).find("URL is existed")<0:
+        if str(ex).find("URL is existed") < 0:
             print("Error while downloading..." + traceback.format_exc())
 
 
@@ -219,6 +259,11 @@ def download_image_lists(n):
     pool.wait()
 
 
+def remove_empty_dir(min_file_tol: int):
+    with MongoDBCollection("website_pron", "images_info_ahash_weed") as coll:
+        return coll.delete_many({"$where": "this.image_list.length<{}".format(min_file_tol)}).deleted_count
+
+
 def execute_one_cycle():
     print("Initialized, downloading...")
     download_image_lists(page_to_read)
@@ -228,6 +273,10 @@ def execute_one_cycle():
 
 
 if __name__ == "__main__":
-    execute_one_cycle()
-    with open("run.log", "a") as fid:
-        fid.write("Updated in " + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "\n")
+    if len(sys.argv) >= 2:
+        if sys.argv[1] == "count_faces":
+            count_faces()
+        else:
+            print("Unknown parameter: " + sys.argv[1])
+    else:
+        execute_one_cycle()

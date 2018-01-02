@@ -23,6 +23,7 @@
                     data = JSON.parse(data);
                     if (data["status"] == "success") {
                         alert("任务添加成功");
+                        $("#parameter").val("");
                     } else {
                         alert("任务添加失败");
                         console.error("Failed to append task");

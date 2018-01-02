@@ -139,7 +139,7 @@
                         console.error(data);
                     }
 
-                    let image_count = jsObj["images"].length;
+                    let image_count = jsObj["image_list"].length;
                     let row_count = Math.ceil(image_count * 1.0 / images_pre_row);
                     mainBox.append($("<h3></h3>").text(jsObj["title"]));
                     mainBox.append($("<p></p>").text(jsObj["comment"]));
@@ -158,7 +158,7 @@
                                 }).html(
                                     $("<img></img>").attr({
                                         "class": "lazy",
-                                        "data-original": jsObj["images"][current_index],
+                                        "data-original": "/image_pool/" + jsObj["image_list"][current_index],
                                         "width": "100%",
                                         "alt": "加载失败"
                                     })

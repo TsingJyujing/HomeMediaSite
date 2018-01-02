@@ -1,4 +1,5 @@
 import sys
+
 sys.path.append("..")
 from utility.connections import MongoDBCollection, ExtSSHConnection
 from config import *
@@ -21,5 +22,23 @@ def migrate_videos_from_server():
                         local_coll.insert_one(doc)
 
 
+def migrate_videos_to_server():
+    with MongoDBCollection("website_pron", "video_info", host="192.168.1.103") as remote_coll:
+        with MongoDBCollection("website_pron", "video_info") as local_coll:
+            with ExtSSHConnection("192.168.1.103", "yuanyifan", "979323") as ext_ssh:
+                for doc in local_coll.find({"source": {"$ne": None}}):
+                    if remote_coll.find_one({"source": doc["source"]}) is None:
+                        print("Uploading...")
+                        print(doc)
+                        _id = doc["_id"]
+                        current_index = int(remote_coll.find({}, {"_id": 1}).sort("_id",-1).limit(1)[0]["_id"]) + 1
+                        insert_doc = doc
+                        insert_doc["_id"] = current_index
+                        ext_ssh.sftp_conn.put(shortcuts_saving_path % _id, remote_video_preview_path % current_index)
+                        ext_ssh.sftp_conn.put(video_saving_path % _id, remote_video_path % current_index)
+                        remote_coll.insert_one(insert_doc)
+                        print("Uploaded.")
+
+
 if __name__ == '__main__':
-    migrate_videos_from_server()
+    migrate_videos_to_server()

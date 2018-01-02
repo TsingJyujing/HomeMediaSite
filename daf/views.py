@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-
-import json
 import shutil
 
 from django.views.decorators.csrf import csrf_exempt
@@ -23,16 +21,8 @@ def get_images_info(request):
     :return: images' urls by given index
     """
     image_page_index = int(request.GET["id"])
-    file_list = filter(filter_images, os.listdir(local_image_list_path % {
-        "page_index": image_page_index
-    }))
-    image_list = [image_url_template % {
-        "page_index": image_page_index,
-        "image_filename": filename
-    } for filename in file_list]
     with MongoDBDatabase("website_pron") as mgdb:
-        doc = mgdb.get_collection("images_info").find_one({"_id": image_page_index})
-        doc["images"] = image_list
+        doc = mgdb.get_collection("images_info_ahash_weed").find_one({"_id": image_page_index})
         return doc
 
 
@@ -53,7 +43,7 @@ def get_nearby_images(request):
         query_dir_condition = {"$lt": current_id}
         sort_flip = -1
     with MongoDBDatabase("website_pron") as mgdb:
-        query_res = mgdb.get_collection("images_info").find({
+        query_res = mgdb.get_collection("images_info_ahash_weed").find({
             "title": {
                 "$regex": "(%s)" % "|".join(keywords.split(" "))
             },
@@ -156,7 +146,7 @@ def query_images_list(request):
     assert page_size >= 1
     assert page_index >= 1
     with MongoDBDatabase("website_pron") as mgdb:
-        query_res = mgdb.get_collection("images_info").find({
+        query_res = mgdb.get_collection("images_info_ahash_weed").find({
             "title": {
                 "$regex": "(%s)" % "|".join(query_keyword.split(" "))
             }
@@ -254,7 +244,7 @@ def set_images_like(request):
     video_id = int(request.POST['id'])
     is_like = request.POST["like"] == "true"
     with MongoDBDatabase("website_pron") as mongo_conn:
-        collection = mongo_conn.get_collection("images_info")
+        collection = mongo_conn.get_collection("images_info_ahash_weed")
         condition = {"_id": {"$eq": video_id}}
         matched_count = collection.update_one(condition, {"$set": {"like": is_like}}).modified_count
         if matched_count > 0:
@@ -316,7 +306,7 @@ def remove_images(request):
     """
     images_index = int(request.POST["id"])
     with MongoDBDatabase("website_pron") as mgdb:
-        collection = mgdb.get_collection("images_info")
+        collection = mgdb.get_collection("images_info_ahash_weed")
         condition = {"_id": {"$eq": images_index}}
         doc = collection.find_one(condition)
         assert doc is not None, "query failed"
