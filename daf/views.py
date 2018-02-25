@@ -225,12 +225,9 @@ def set_video_like(request):
     is_like = request.POST["like"] == "true"
     with MongoDBDatabase("website_pron") as mongo_conn:
         collection = mongo_conn.get_collection("video_info")
-        condition = {"_id": {"$eq": video_id}}
-        matched_count = collection.update_one(condition, {"$set": {"like": is_like}}).modified_count
-        if matched_count > 0:
-            return {"status": "success"}
-        else:
-            return {"status": "error"}
+        condition = {"_id": video_id}
+        collection.update_one(condition, {"$set": {"like": is_like}})
+        return {"status": "success"}
 
 
 @csrf_exempt
@@ -241,16 +238,13 @@ def set_images_like(request):
     :param request:
     :return:
     """
-    video_id = int(request.POST['id'])
+    imagelist_id = int(request.POST['id'])
     is_like = request.POST["like"] == "true"
     with MongoDBDatabase("website_pron") as mongo_conn:
         collection = mongo_conn.get_collection("images_info_ahash_weed")
-        condition = {"_id": {"$eq": video_id}}
-        matched_count = collection.update_one(condition, {"$set": {"like": is_like}}).modified_count
-        if matched_count > 0:
-            return {"status": "success"}
-        else:
-            return {"status": "error"}
+        condition = {"_id": imagelist_id}
+        collection.update_one(condition, {"$set": {"like": is_like}})
+        return {"status": "success"}
 
 
 @csrf_exempt
@@ -265,12 +259,9 @@ def set_novel_like(request):
     is_like = request.POST["like"] == "true"
     with MongoDBDatabase("website_pron") as mongo_conn:
         collection = mongo_conn.get_collection("novels")
-        condition = {"_id": {"$eq": novel_id}}
-        matched_count = collection.update_one(condition, {"$set": {"like": is_like}}).modified_count
-        if matched_count > 0:
-            return {"status": "success"}
-        else:
-            return {"status": "error"}
+        condition = {"_id": novel_id}
+        collection.update_one(condition, {"$set": {"like": is_like}})
+        return {"status": "success"}
 
 
 @csrf_exempt

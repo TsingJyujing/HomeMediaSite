@@ -53,7 +53,7 @@ def generate_index_page_url(page_index):
     return "http://%s/thread0806.php?fid=16&search=&page=%d" % (caoliu_host, page_index)
 
 
-def get_latest_urls(page_index):
+def get_latest_urls(page_index:int):
     index_soup = get_soup(generate_index_page_url(page_index))
     h3blocks = index_soup.find(name="tbody", attrs={"style": "table-layout:fixed;"}).find_all("h3")
     return_value = dict()

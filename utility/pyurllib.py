@@ -14,10 +14,10 @@ import math
 import base64
 import requests
 from http.cookiejar import CookieJar
-
+from config import agency_address
 from bs4 import BeautifulSoup
 import threading
-
+import traceback
 from utility.connections import ExtSSHConnection
 
 try:  # Python 2.x
@@ -90,7 +90,7 @@ def GET(url, retry_times=1):
         raise exception
 
 def urlread2_agency(url:str):
-    agency_url = "http://47.90.245.126/agency/get?url=%s" % base64.b64encode(url.encode("UTF-8")).decode()
+    agency_url = agency_address + "/agency/get?url=%s" % base64.b64encode(url.encode("UTF-8")).decode()
     obj = json.loads(
         urllib2.urlopen(
             url=get_request(agency_url),
@@ -256,6 +256,7 @@ class DownloadTask(BackgroundTask):
                 reporthook=lambda a, b, c: self.set_progress(a * b * 100.0 / c)
             )
         except Exception as ex:
+            print(traceback.format_exc())
             print("Error in {} --> {}, use remote downloader.".format(self.target_url, self.save_file))
             RemoteDownloadTask(self.target_url, self.save_file).run()
 
@@ -273,7 +274,7 @@ class RemoteDownloadTask(BackgroundTask):
         self.set_parent_progress(value)
 
     def run(self):
-        with ExtSSHConnection(host="47.90.245.126", user="root", passwd="dz979323846@") as ext_ssh:
+        with ExtSSHConnection(host="173.199.71.121", user="root", passwd="979323846") as ext_ssh:
             self.progress = 10
             command = 'wget "%s" -O "/root/download/%s"' % (self.target_url, self.save_file)
             ext_ssh.run_command(command)

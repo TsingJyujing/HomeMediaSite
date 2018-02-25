@@ -105,13 +105,13 @@
                         const append_image_url = (image_url) => {
                             image_row.append($("<div></div>").attr({
                                 "class": "col-md-12",
-                                "style": "min-height:240px"
+                                "style": "height:240px"
                             }).append(
                                 $("<img></img>").attr({
                                     "class": "lazy",
                                     "data-original": image_url,
                                     "alt": "加载失败",
-                                    "style": "min-height:240px"
+                                    "style": "height:240px"
                                 })
                             ));
                             image_row.append("<br>");
